@@ -1,13 +1,13 @@
 ;;; auto-compile.el --- automatically compile Emacs Lisp files
 
-;; Copyright (C) 2008 Jonas Bernoulli
+;; Copyright (C) 2008, 2009 Jonas Bernoulli
 
-;; Author: Jonas Bernoulli <jonas@bernoulli.cc>
+;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Updated: 20081030
-;; Version: 0.3.3
-;; Homepage: http://artavatar.net
-;; Keywords: convenience, compile, lisp
+;; Updated: 20090206
+;; Version: 0.4
+;; Homepage: https://github.com/tarsius/auto-compile
+;; Keywords: compile, convenience, lisp
 
 ;; This file is not part of GNU Emacs.
 
@@ -27,12 +27,12 @@
 ;;; Commentary:
 
 ;; Automatically compile Emacs Lisp files when they are saved or when
-;; their buffers are destroyed. Also see `auto-compile-mode's doc-string.
+;; their buffers are killed.  Also see `auto-compile-mode's doc-string.
 
 ;;; Code:
 
 (require 'cl)
-(require 'save-local-vars)
+(require 'save-local-vars nil t)
 
 (defgroup auto-compile nil
   "Automatically compile Emacs Lisp files."
@@ -68,7 +68,8 @@ variables they depend on, don't have any effect.
 
 0. If `auto-compile-flag' is set locally obey it.
 
-1. If `auto-compile-flag' is set globally to `ask-always' then query user.
+1. If `auto-compile-flag' is set globally to `ask-always' then ask the
+   user.
 
 2. If `auto-compile-concider-no-byte' is set to nil file _might_ be
    compiles if and only if a byte file already exists. Otherwise if set
@@ -77,14 +78,14 @@ variables they depend on, don't have any effect.
 3. If the file is explicitly included or excluded then do as requested.
    The regexps in `auto-compile-include' and `auto-compile-exclude' are
    used for explicit inclusion and exclusion.  If a file matches a regexp
-   in both variables the the following mechanism is used to determine the
+   in both variables the following mechanism is used to determine the
    closer match:
 
-   If one of the regexp matches file-names at the end (ends with $) then
+   If one of the regexps matches file-names at the end (ends with $) then
    that is assumed to be the closer match.  This allows to have a setting
    for most files in a directory but another for some of them.
 
-   If no or both regexp match file-names at the end then the length of
+   If no or both regexps match file-names at the end then the length of
    the matched strings are compared and the longer wins.  This allows to
    have a setting for files in a directory but another for files in a
    subdirectory.
@@ -98,17 +99,17 @@ variables they depend on, don't have any effect.
    compiledp        Recompile if compiled file exists; otherwise don't.
    compiledp-or-ask Recompile if compiled file exists; otherwise ask.
 
-After the user was prompted whether to compile some file he can also have
-Emacs remember his choice.  See also option `auto-compile-remember'."
+After the user was prompted whether to compile some file the choice can be
+saved.  See option `auto-compile-remember'."
   :lighter " AC"
   :global t
   (auto-compile-modify-hooks))
 
 (defcustom auto-compile-when t
-  "Controls when file should be compiled.
+  "Event triggering compilation.
 
 t   Compile when saving.
-nil Compile on buffer deletion.
+nil Compile when killing.
 
 This variable can be set locally for a file."
   :group 'auto-compile
@@ -122,7 +123,7 @@ This variable can be set locally for a file."
 (put 'auto-compile-when 'safe-local-variable 'booleanp)
 
 (defcustom auto-compile-flag 'ask
-  "Should files be compiled after asking, unconditionally or not at all.
+  "Level of automation when compiling files.
 
 t                Compile file if it has not explicitly been excluded.
 nil              Only compile file if it has explicitly been included.
@@ -147,7 +148,7 @@ the global value `ask-always' does not have any effect for the given file."
 (put 'auto-compile-flag 'safe-local-variable 'booleanp)
 
 (defcustom auto-compile-remember 'ask
-  "After being asked whether to compile a file, also remember choice.
+  "Duration for which user choices should be remembered.
 
 session Remember choice for this session only.
 save    Remember for future sessions.
@@ -226,17 +227,20 @@ nil Only concider file if byte file exists."
       (make-local-variable 'auto-compile-flag)
       (setq auto-compile-flag compile))
     (case save 
-      (file (save-local-variable 'auto-compile-flag))
-      (list (cond (compile
-		   (push (concat "^" (regexp-quote file))
-			 auto-compile-include)
-		   (put 'auto-compile-include 'saved-value
-			(list auto-compile-include)))
-		  (t
-		   (push (concat "^" (regexp-quote file))
-			 auto-compile-exclude)
-		   (put 'auto-compile-exclude 'saved-value
-			(list auto-compile-exclude))))
+      (file (unless (featurep 'save-local-vars)
+	      (error "Library save-local-vars required to save choice in file"))
+	    (save-local-variable 'auto-compile-flag))
+      (list (let* ((symbol (if compile
+			       'auto-compile-include
+			     'auto-compile-exclude))
+		   (value (custom-quote
+			   (cons (concat "^" (regexp-quote file))
+				 (symbol-value symbol)))))
+	      (set symbol value)
+	      (put symbol 'saved-value (list value))
+	      (put symbol 'customized-value nil)
+	      (unless (featurep 'cus-edit+)
+		(custom-push-theme 'theme-value symbol 'user 'set value)))
 	    (custom-save-all)))
     (let ((buffer (get-buffer "*Auto-Compile Help*")))
       (when buffer
