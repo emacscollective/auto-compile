@@ -32,7 +32,6 @@
 ;;; Code:
 
 (require 'cl)
-(require 'save-local-vars nil t)
 
 (defgroup auto-compile nil
   "Automatically compile Emacs Lisp files."
@@ -227,7 +226,7 @@ nil Only concider file if byte file exists."
       (make-local-variable 'auto-compile-flag)
       (setq auto-compile-flag compile))
     (case save 
-      (file (unless (featurep 'save-local-vars)
+      (file (unless (require 'save-local-vars nil t)
 	      (error "Library save-local-vars required to save choice in file"))
 	    (save-local-variable 'auto-compile-flag))
       (list (let* ((symbol (if compile
