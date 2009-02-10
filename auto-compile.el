@@ -4,7 +4,7 @@
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Updated: 20090206
+;; Updated: 20090210
 ;; Version: 0.4
 ;; Homepage: https://github.com/tarsius/auto-compile
 ;; Keywords: compile, convenience, lisp
@@ -287,14 +287,16 @@ nil Only concider file if byte file exists."
 			(let ((in-end (string-match "\\$$" include))
 			      (ex-end (string-match "\\$$" exclude)))
 			  (cond ((and in-end (not ex-end))
-				 (byte-compile-file file))
+				 (byte-compile-file file)
+				 t)
 				((and (not in-end) ex-end))
 				((>= (length inmatch)
 				     (length exmatch))
 				 (byte-compile-file file))
 				(t t))))
 		       (include
-			(byte-compile-file file))
+			(byte-compile-file file)
+			t)
 		       (exclude t))))
 	      ;; 4. obey global flag
 	      ((eq auto-compile-flag t)
