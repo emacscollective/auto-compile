@@ -5,7 +5,7 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
 ;; Updated: 20090328
-;; Version: 0.4
+;; Version: 0.5
 ;; Homepage: https://github.com/tarsius/auto-compile
 ;; Keywords: compile, convenience, lisp
 
@@ -44,19 +44,21 @@
   :group 'Convenience
   :link '(function-link auto-compile-mode))
 
-(defun auto-compile-modify-hooks ()
-  (cond ((not auto-compile-mode)
-	 (remove-hook 'after-save-hook  'check-parens)
-	 (remove-hook 'after-save-hook  'auto-compile-file-maybe)
-	 (remove-hook 'kill-buffer-hook 'auto-compile-file-maybe))
+(defun auto-compile-modify-hooks (&optional local)
+  (cond ((or (eq local 'remove-local)
+	     (and (not local)
+		  (not auto-compile-mode)))
+	 (remove-hook 'after-save-hook  'check-parens local)
+	 (remove-hook 'after-save-hook  'auto-compile-file-maybe local)
+	 (remove-hook 'kill-buffer-hook 'auto-compile-file-maybe local))
 	((eq auto-compile-when t)
-	 (remove-hook 'after-save-hook  'check-parens)
-	 (add-hook    'after-save-hook  'auto-compile-file-maybe)
-	 (remove-hook 'kill-buffer-hook 'auto-compile-file-maybe))
+	 (remove-hook 'after-save-hook  'check-parens local)
+	 (add-hook    'after-save-hook  'auto-compile-file-maybe t local)
+	 (remove-hook 'kill-buffer-hook 'auto-compile-file-maybe local))
 	(t
-	 (add-hook    'after-save-hook  'check-parens)
-	 (remove-hook 'after-save-hook  'auto-compile-file-maybe)
-	 (add-hook    'kill-buffer-hook 'auto-compile-file-maybe))))
+	 (add-hook    'after-save-hook  'check-parens t local)
+	 (remove-hook 'after-save-hook  'auto-compile-file-maybe local)
+	 (add-hook    'kill-buffer-hook 'auto-compile-file-maybe local))))
 
 ;;;###autoload
 (define-minor-mode auto-compile-mode
@@ -114,7 +116,13 @@ Before a file is actually compiled `check-paren' is called, which
 in case of an unmatched bracket or quote positions point near the error.
 When only compiling upon killing of a file-visiting buffers you can still
 choose to always call `check-paren' when saving.  See option
-`auto-compile-when'."
+`auto-compile-when'.
+
+When turned on `auto-compile-mode' is in effect in all buffer visiting
+Emacs Lisp files.  Though it might not have an effect in some of them as
+described above.  You can also toggle automatic compilation on and off in
+a given buffer using `toggle-local-auto-compile'.  This even works if
+`auto-compile-mode' is not turned on."
   :lighter " AC"
   :global t
   (auto-compile-modify-hooks))
@@ -215,6 +223,79 @@ nil Only concider file if byte file exists."
           (const :tag "Concider file regardless if byte file exists." t)
           (const :tag "Only concider file if byte file exists." nil)))
 
+(defun toggle-local-auto-compile ()
+  "Toggle the local buffer local value of `auto-compile-flag'.
+
+This always toggles between t and nil.  If there is no local value yet
+and the global value isn't a boolean then set the local value to nil.
+
+This toggle is mainly intended for situations when you know that some file
+compile temporarly won't compile without errors and/or warnings or even is
+in an unbalanced state.
+
+If your library is in an balanced state and `auto-compile-when' is
+customized to check if it is well balanced this would annoyingly jump to
+the error doing exactly what you wanted to avoid.  In order to prevent
+this `auto-compile-when' is locally set to t if it's global value is 1.
+
+After your library can be safely compiled again use command
+`auto-compile-kill-local' to remove all relevant local variables.
+
+You can use the command even when `auto-compile-mode' is not enabled,
+allowing you to use this library in a less intrusive way only in situation
+when you want to explicetly update or test your changes but not call
+`byte-compile-file' manually."
+  (interactive)
+  (make-local-variable 'auto-compile-flag)
+  (cond ((memq auto-compile-flag '(t 1))
+	 (unless auto-compile-mode
+	   (auto-compile-modify-hooks 'set-local))
+	 (when (eq auto-compile-flag 1)
+	   (make-local-variable 'auto-compile-flag)
+	   (setq auto-compile-when t))
+	 (setq auto-compile-flag nil)
+	 (message "Automatic compilation locally disabled"))
+	(t
+	 (setq auto-compile-flag t)
+	 (message "Automatic compilation locally enabled"))))
+
+(defalias 'auto-compile-toggle-local 'toggle-local-auto-compile)
+
+(defun auto-compile-kill-local (&optional zap)
+  "Kill all local `auto-compile' variables possibly zapping memory.
+
+This is useful after you have used `toggle-local-auto-compile' or when
+you where already prompted whether to compile some file but have changed
+your mind.  The next time you will save the file (or kill the buffer) you
+are asked again.
+
+If you have choosen to also save your choice then you have to call this
+function with a prefix argument in order to be asked again.
+
+This will modify `auto-compile-include' or `auto-compile-exclude'.  If
+this does not work multible expressions in these variables might match the
+file-name.  Try using this command again or customize these variables
+manually.
+
+The modifications made by this command are only in effect in the current
+session.  To save them permanently you have to use Custom.  You could also
+use library `cus-edit++.el' which prompts when exiting Emacs and
+customized options that have not been saved yet exist.
+
+If you have saved your choice by modifing the file itself this command
+fails and you have to remove the definition manually."
+  (interactive "p")
+  (kill-local-variable 'auto-compile-flag)
+  (when zap
+    (let ((match (auto-compile-file-match (buffer-file-name))))
+      (when match
+	(remove (cadr match)
+		(symbol-value (if (car match)
+				  'auto-compile-include
+				'auto-compile-exclude))))))
+  (kill-local-variable 'auto-compile-when)
+  (auto-compile-modify-hooks 'remove-local))
+
 (defun auto-compile-file-do (file)
   (check-parens)
   (byte-compile-file file)
@@ -241,10 +322,18 @@ nil Only concider file if byte file exists."
 		 (?? (setq answer nil)
 		     (with-output-to-temp-buffer "*Auto-Compile Help*"
 		       (princ "\
+After you have chosen to whether to automatically compile a file this
+choice can be remembered or even saved.  What would you like to do?
+
 <y>: Remember choice until buffer is closed.
 <n>: Do not remember choice, ask again.
 <s>: Remember choice and save in variable.
-<f>: Remember choice and save in file.")
+<f>: Remember choice and save in file (not recommended).
+
+You can later undo remembering your choice using command
+`toggle-local-auto-compile'.  In order to be prompted less often
+consider customizing the options `auto-compile-include' and
+`auto-compile-exclude'.")
 		       (save-excursion
 			 (set-buffer standard-output)
 			 (help-mode))))
