@@ -311,14 +311,16 @@ nil Only concider file if byte file exists."
 		 (auto-compile-file-ask file))))))))
 
 (defun auto-compile-file-match-1 (file variable)
-  ;; TODO find best not first match
-  (let ((match (car (member* file (symbol-value variable)
-			     :test (lambda (str reg)
-				     (string-match reg str))))))
-    (when match
-      (list (eq variable 'auto-compile-include) ; includep
-	    match                               ; regex
-	    (match-string 0 file)))))           ; matched
+  (let ((value (symbol-value variable))
+	regexp match result)
+    (while (setq regexp (pop value))
+      (when (string-match regexp file)
+	(setq match (match-string 0 file))
+	(when (> (length match)
+		 (length (cadr result)))
+	  (setq result (list regexp match)))))
+    (when result
+      (cons (eq variable 'auto-compile-include) result))))
 
 (defun auto-compile-file-match (file)
   (let ((include (auto-compile-file-match-1 file 'auto-compile-include))
