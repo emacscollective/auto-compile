@@ -182,6 +182,10 @@ nil     Don't remember choice."
 
 Matching files are automatically compiled.
 
+Entries can start with \"~\" which will be replaced with the users home
+directory before the entry is actually used as regular expression.  This
+also works if an entry starts with \"^~\".
+
 See `auto-compile-mode' for a description of how conflicts
 between this option and `auto-compile-exclude' are handled."
   :group 'auto-compile
@@ -191,6 +195,10 @@ between this option and `auto-compile-exclude' are handled."
   "List of exclusion regular expressions for automatic compilation.
 
 Matching files are excluded from automatic compilation.
+
+Entries can start with \"^~\" which will be replaced with the users home
+directory before the entry is actually used as regular expression.  This
+also works if an entry starts with \"^~\".
 
 See `auto-compile-mode' for a description of how conflicts
 between this option and `auto-compile-include' are handled."
@@ -314,7 +322,10 @@ nil Only concider file if byte file exists."
   (let ((value (symbol-value variable))
 	regexp match result)
     (while (setq regexp (pop value))
-      (when (string-match regexp file)
+      (when (string-match
+	     (replace-regexp-in-string "^^?\\(~\\)" regexp
+				       (getenv "HOME") nil nil 1)
+	     file)
 	(setq match (match-string 0 file))
 	(when (> (length match)
 		 (length (cadr result)))
