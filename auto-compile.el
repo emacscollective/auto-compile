@@ -40,14 +40,17 @@
 
 (defun auto-compile-modify-hooks ()
   (cond ((not auto-compile-mode)
-	 (remove-hook 'after-save-hook 'auto-compile-file-maybe)
+	 (remove-hook 'after-save-hook  'check-parens)
+	 (remove-hook 'after-save-hook  'auto-compile-file-maybe)
 	 (remove-hook 'kill-buffer-hook 'auto-compile-file-maybe))
-	(auto-compile-when
-	 (add-hook 'after-save-hook 'auto-compile-file-maybe)
+	((eq auto-compile-when t)
+	 (remove-hook 'after-save-hook  'check-parens)
+	 (add-hook    'after-save-hook  'auto-compile-file-maybe)
 	 (remove-hook 'kill-buffer-hook 'auto-compile-file-maybe))
 	(t
-	 (remove-hook 'after-save-hook 'auto-compile-file-maybe)
-	 (add-hook 'kill-buffer-hook 'auto-compile-file-maybe))))
+	 (add-hook    'after-save-hook  'check-parens)
+	 (remove-hook 'after-save-hook  'auto-compile-file-maybe)
+	 (add-hook    'kill-buffer-hook 'auto-compile-file-maybe))))
 
 ;;;###autoload
 (define-minor-mode auto-compile-mode
@@ -107,14 +110,16 @@ saved.  See option `auto-compile-remember'."
 (defcustom auto-compile-when t
   "Event triggering compilation.
 
-t   Compile when saving.
-nil Compile when killing.
+t   Compile when saving file.
+nil Compile when killing buffer.
+1   Compile when killing buffer; check parentheses when saving
 
 This variable can be set locally for a file."
   :group 'auto-compile
   :type '(choice
-          (const :tag "Compile when saving" t)
-          (const :tag "Compile on buffer deletion." nil))
+	  (const :tag "Compile when saving" t)
+	  (const :tag "Compile when killing buffer." nil)
+	  (const :tag "Compile when killing buffer; check parens when saving." 1))
   :set (lambda (variable value)
 	 (set-default variable value)
 	 (auto-compile-modify-hooks)))
