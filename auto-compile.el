@@ -190,11 +190,15 @@ nil Only concider file if byte file exists."
           (const :tag "Concider file regardless if byte file exists." t)
           (const :tag "Only concider file if byte file exists." nil)))
 
+(defun auto-compile-file-do (file)
+  (check-parens)
+  (byte-compile-file file))
+
 (defun auto-compile-file-ask (file)
   (let ((compile (yes-or-no-p (format "Compile %s " file)))
 	remember save)
     (when compile
-      (byte-compile-file file))
+      (auto-compile-file-do file))
     (case auto-compile-remember
       (session (setq remember t))
       (save (setq remember t save 'list))
@@ -262,7 +266,7 @@ nil Only concider file if byte file exists."
 	      ;; 0. obey local flag
 	      ((local-variable-p 'auto-compile-flag)
 	       (when (eq auto-compile-flag t)
-		 (byte-compile-file file))
+		 (auto-compile-file-do file))
 	       t)
 	      ;; 1. ask if we always ask
 	      ((eq auto-compile-flag 'ask-always)
@@ -286,28 +290,28 @@ nil Only concider file if byte file exists."
 			(let ((in-end (string-match "\\$$" include))
 			      (ex-end (string-match "\\$$" exclude)))
 			  (cond ((and in-end (not ex-end))
-				 (byte-compile-file file)
+				 (auto-compile-file-do file)
 				 t)
 				((and (not in-end) ex-end))
 				((>= (length inmatch)
 				     (length exmatch))
-				 (byte-compile-file file))
+				 (auto-compile-file-do file))
 				(t t))))
 		       (include
-			(byte-compile-file file)
+			(auto-compile-file-do file)
 			t)
 		       (exclude t))))
 	      ;; 4. obey global flag
 	      ((eq auto-compile-flag t)
-	       (byte-compile-file file))
+	       (auto-compile-file-do file))
 	      ((eq auto-compile-flag 'ask)
 	       (auto-compile-file-ask file))
 	      ((and (eq auto-compile-flag 'compiledp)
 		    (file-exists-p byte-file))
-	       (byte-compile-file file))
+	       (auto-compile-file-do file))
 	      ((eq auto-compile-flag 'compiledp-or-ask)
 	       (if (file-exists-p byte-file)
-		   (byte-compile-file file)
+		   (auto-compile-file-do file)
 		 (auto-compile-file-ask file))))))))
 
 (provide 'auto-compile)
