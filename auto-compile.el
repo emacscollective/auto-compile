@@ -1,10 +1,10 @@
 ;;; auto-compile.el --- automatically compile Emacs Lisp files
 
-;; Copyright (C) 2008, 2009 Jonas Bernoulli
+;; Copyright (C) 2008, 2009  Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Updated: 20090210
+;; Updated: 20090328
 ;; Version: 0.4
 ;; Homepage: https://github.com/tarsius/auto-compile
 ;; Keywords: compile, convenience, lisp
@@ -232,11 +232,10 @@ nil Only concider file if byte file exists."
       (list (let* ((symbol (if compile
 			       'auto-compile-include
 			     'auto-compile-exclude))
-		   (value (custom-quote
-			   (cons (concat "^" (regexp-quote file))
-				 (symbol-value symbol)))))
+		   (value (cons (concat "^" (regexp-quote file))
+				(symbol-value symbol))))
 	      (set symbol value)
-	      (put symbol 'saved-value (list value))
+	      (put symbol 'saved-value (list (custom-quote value)))
 	      (put symbol 'customized-value nil)
 	      (unless (featurep 'cus-edit+)
 		(custom-push-theme 'theme-value symbol 'user 'set value)))
