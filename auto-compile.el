@@ -29,6 +29,12 @@
 ;; Automatically compile Emacs Lisp files when they are saved or when
 ;; their buffers are killed.  Also see `auto-compile-mode's doc-string.
 
+;; This library makes your life a bit easier, as it allows you to fix an
+;; error shortly after you have made it.  It is also my hope that it will
+;; encourage you to write libraries that do not show any unnecessary
+;; warnings.  Also see "Tips for Avoiding Compiler Warnings" in the Emacs
+;; Lisp info page.
+
 ;;; Code:
 
 (require 'cl)
@@ -102,7 +108,13 @@ variables they depend on, don't have any effect.
    compiledp-or-ask Recompile if compiled file exists; otherwise ask.
 
 After the user was prompted whether to compile some file the choice can be
-saved.  See option `auto-compile-remember'."
+saved.  See option `auto-compile-remember'.
+
+Before a file is actually compiled `check-paren' is called, which
+in case of an unmatched bracket or quote positions point near the error.
+When only compiling upon killing of a file-visiting buffers you can still
+choose to always call `check-paren' when saving.  See option
+`auto-compile-when'."
   :lighter " AC"
   :global t
   (auto-compile-modify-hooks))
