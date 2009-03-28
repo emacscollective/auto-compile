@@ -228,7 +228,8 @@ nil Only concider file if byte file exists."
     (case save 
       (file (unless (require 'save-local-vars nil t)
 	      (error "Library save-local-vars required to save choice in file"))
-	    (save-local-variable 'auto-compile-flag))
+	    (with-no-warnings
+	      (save-local-variable 'auto-compile-flag)))
       (list (let* ((symbol (if compile
 			       'auto-compile-include
 			     'auto-compile-exclude))
