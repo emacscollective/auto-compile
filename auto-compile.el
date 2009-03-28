@@ -209,7 +209,8 @@ nil Only concider file if byte file exists."
 
 (defun auto-compile-file-do (file)
   (check-parens)
-  (byte-compile-file file))
+  (byte-compile-file file)
+  t)
 
 (defun auto-compile-file-ask (file)
   (let ((compile (yes-or-no-p (format "Compile %s " file)))
@@ -264,7 +265,8 @@ nil Only concider file if byte file exists."
 	    (custom-save-all)))
     (let ((buffer (get-buffer "*Auto-Compile Help*")))
       (when buffer
-	(kill-buffer-and-its-windows buffer)))))
+	(kill-buffer-and-its-windows buffer))))
+  t)
 
 (defun auto-compile-file-maybe ()
   (unless (bound-and-true-p inhibit-auto-compile)
@@ -283,12 +285,10 @@ nil Only concider file if byte file exists."
 	      ;; 0. obey local flag
 	      ((local-variable-p 'auto-compile-flag)
 	       (when (eq auto-compile-flag t)
-		 (auto-compile-file-do file))
-	       t)
+		 (auto-compile-file-do file)))
 	      ;; 1. ask if we always ask
 	      ((eq auto-compile-flag 'ask-always)
-	       (auto-compile-file-ask file)
-	       t)
+	       (auto-compile-file-ask file))
 	      ;; 2. missing required byte file
 	      ((and (not auto-compile-concider-no-byte)
 		    (not (file-exists-p byte-file))))
