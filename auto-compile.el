@@ -293,31 +293,10 @@ nil Only concider file if byte file exists."
 	      ((and (not auto-compile-concider-no-byte)
 		    (not (file-exists-p byte-file))))
 	      ;; 3. automatic inclusion/exclusion
-	      ((let* ((domatch (lambda (str reg)
-				 (string-match reg str)))
-		      (include (car (member* file auto-compile-include
-					     :test domatch)))
-		      (inmatch (when include
-				 (match-string 0 file)))
-		      (exclude (car (member* file auto-compile-exclude
-					     :test domatch)))
-		      (exmatch (when exclude
-				 (match-string 0 file))))
-		 (cond ((and include exclude)
-			(let ((in-end (string-match "\\$$" include))
-			      (ex-end (string-match "\\$$" exclude)))
-			  (cond ((and in-end (not ex-end))
-				 (auto-compile-file-do file)
-				 t)
-				((and (not in-end) ex-end))
-				((>= (length inmatch)
-				     (length exmatch))
-				 (auto-compile-file-do file))
-				(t t))))
-		       (include
-			(auto-compile-file-do file)
-			t)
-		       (exclude t))))
+	      ((let ((match (auto-compile-file-match file)))
+		 (cond ((null match) nil)
+		       ((car  match) (auto-compile-file-do file))
+		       (t            t))))
 	      ;; 4. obey global flag
 	      ((eq auto-compile-flag t)
 	       (auto-compile-file-do file))
@@ -330,6 +309,28 @@ nil Only concider file if byte file exists."
 	       (if (file-exists-p byte-file)
 		   (auto-compile-file-do file)
 		 (auto-compile-file-ask file))))))))
+
+(defun auto-compile-file-match-1 (file variable)
+  ;; TODO find best not first match
+  (let ((match (car (member* file (symbol-value variable)
+			     :test (lambda (str reg)
+				     (string-match reg str))))))
+    (when match
+      (list (eq variable 'auto-compile-include) ; includep
+	    match                               ; regex
+	    (match-string 0 file)))))           ; matched
+
+(defun auto-compile-file-match (file)
+  (let ((include (auto-compile-file-match-1 file 'auto-compile-include))
+	(exclude (auto-compile-file-match-1 file 'auto-compile-exclude)))
+    (if (and include exclude)
+	(if (or (and (string-match "\\$$" (cadr include))
+		     (not (string-match "\\$$" (cadr exclude))))
+		(>= (length (caddr include))
+		    (length (caddr exclude))))
+	    include
+	  exclude)
+      (or include exclude))))
 
 (provide 'auto-compile)
 ;;; auto-compile.el ends here
