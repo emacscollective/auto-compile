@@ -4,8 +4,8 @@
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Updated: 20090328
-;; Version: 0.5
+;; Updated: 20090627
+;; Version: 0.5.1
 ;; Homepage: https://github.com/tarsius/auto-compile
 ;; Keywords: compile, convenience, lisp
 
@@ -32,8 +32,8 @@
 ;; This library makes your life a bit easier, as it allows you to fix an
 ;; error shortly after you have made it.  It is also my hope that it will
 ;; encourage you to write libraries that do not show any unnecessary
-;; warnings.  Also see "Tips for Avoiding Compiler Warnings" in the Emacs
-;; Lisp info page.
+;; warnings when compiled by a user.  Also see "Tips for Avoiding Compiler
+;; Warnings" in the Emacs Lisp info page.
 
 ;;; Code:
 
