@@ -4,7 +4,7 @@
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Updated: 20090627
+;; Updated: 20090802
 ;; Version: 0.5.1
 ;; Homepage: https://github.com/tarsius/auto-compile
 ;; Keywords: compile, convenience, lisp
@@ -123,7 +123,6 @@ Emacs Lisp files.  Though it might not have an effect in some of them as
 described above.  You can also toggle automatic compilation on and off in
 a given buffer using `toggle-local-auto-compile'.  This even works if
 `auto-compile-mode' is not turned on."
-  :lighter " AC"
   :global t
   (auto-compile-modify-hooks))
 
