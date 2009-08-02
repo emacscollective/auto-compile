@@ -5,7 +5,7 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
 ;; Updated: 20090802
-;; Version: 0.5.1
+;; Version: 0.5.2
 ;; Homepage: https://github.com/tarsius/auto-compile
 ;; Keywords: compile, convenience, lisp
 
@@ -38,6 +38,7 @@
 ;;; Code:
 
 (require 'cl)
+(require 'read-char-spec)
 
 (defgroup auto-compile nil
   "Automatically compile Emacs Lisp files."
@@ -308,38 +309,16 @@ fails and you have to remove the definition manually."
     (case auto-compile-remember
       (session (setq remember t))
       (save (setq remember t save 'list))
-      (ask (let (answer)
-	     (while (null answer)
-	       (message "Remember choice? (y, n, s, f or ?) ")
-	       (setq answer (let ((cursor-in-echo-area t))
-			      (read-char-exclusive)))
-	       (case (downcase answer)
-		 (?y (setq remember t))
-		 (?s (setq remember t save 'list))
-		 (?f (setq remember t save 'file))
-		 (?n)
-		 (?? (setq answer nil)
-		     (with-output-to-temp-buffer "*Auto-Compile Help*"
-		       (princ "\
-After you have chosen to whether to automatically compile a file this
-choice can be remembered or even saved.  What would you like to do?
-
-<y>: Remember choice until buffer is closed.
-<n>: Do not remember choice, ask again.
-<s>: Remember choice and save in variable.
-<f>: Remember choice and save in file (not recommended).
-
-You can later undo remembering your choice using command
-`toggle-local-auto-compile'.  In order to be prompted less often
-consider customizing the options `auto-compile-include' and
-`auto-compile-exclude'.")
-		       (save-excursion
-			 (set-buffer standard-output)
-			 (help-mode))))
-		 (t (setq answer nil)
-		    (beep)
-		    (message "Please answer y, n, s or f; or ? for help")
-		    (sit-for 3)))))))
+      (ask (eval (read-char-spec
+		  "Remember choice? "
+		  '((?y (setq remember t)
+			"Remember choice until buffer is closed.")
+		    (?s (setq remember t save 'list)
+			"Do not remember choice, ask again.")
+		    (?f (setq remember t save 'file)
+			"Remember choice and save in variable.")
+		    (?n nil
+			"Remember choice and save in file."))))))
     (when remember
       (make-local-variable 'auto-compile-flag)
       (setq auto-compile-flag compile))
