@@ -368,10 +368,8 @@ fails and you have to remove the definition manually."
 	      ((and (not auto-compile-concider-no-byte)
 		    (not (file-exists-p byte-file))))
 	      ;; 3. automatic inclusion/exclusion
-	      ((let ((match (auto-compile-file-match file)))
-		 (cond ((null match) nil)
-		       ((car  match) (auto-compile-file-do file))
-		       (t            t))))
+	      ((case (auto-compile-file-match file)
+		 (1) ((nil) t) (t (auto-compile-file-do file))))
 	      ;; 4. obey global flag
 	      ((eq auto-compile-flag t)
 	       (auto-compile-file-do file))
@@ -385,32 +383,30 @@ fails and you have to remove the definition manually."
 		   (auto-compile-file-do file)
 		 (auto-compile-file-ask file))))))))
 
-(defun auto-compile-file-match-1 (file variable)
-  (let ((value (symbol-value variable))
-	regexp match result)
-    (while (setq regexp (pop value))
+(defun auto-compile-file-match-1 (file regexps)
+  (let (regexp match result)
+    (while (setq regexp (pop regexps))
       (when (string-match
 	     (replace-regexp-in-string
 	      "^^?\\(~\\)/" (getenv "HOME") regexp nil nil 1)
 	     file)
 	(setq match (match-string 0 file))
 	(when (> (length match)
-		 (length (cadr result)))
-	  (setq result (list regexp match)))))
-    (when result
-      (cons (eq variable 'auto-compile-include) result))))
+		 (length (car result)))
+	  (setq result (cons match (string-match "\\$$" regexp))))))
+    result))
 
 (defun auto-compile-file-match (file)
-  (let ((include (auto-compile-file-match-1 file 'auto-compile-include))
-	(exclude (auto-compile-file-match-1 file 'auto-compile-exclude)))
+  (let ((include (auto-compile-file-match-1 file auto-compile-include))
+	(exclude (auto-compile-file-match-1 file auto-compile-exclude)))
     (if (and include exclude)
-	(if (or (and (string-match "\\$$" (cadr include))
-		     (not (string-match "\\$$" (cadr exclude))))
-		(>= (length (caddr include))
-		    (length (caddr exclude))))
-	    include
-	  exclude)
-      (or include exclude))))
+	(or (and (cdr include)
+		 (not (cdr exclude)))
+	    (>= (length (car include))
+		(length (car exclude))))
+      (if (or include exclude)
+	  (not exclude)
+	1))))
 
 (provide 'auto-compile)
 ;;; auto-compile.el ends here
