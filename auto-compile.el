@@ -5,7 +5,7 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
 ;; Updated: 20091117
-;; Version: 0.5.2+
+;; Version: 0.6_rc1
 ;; Homepage: https://github.com/tarsius/auto-compile
 ;; Keywords: compile, convenience, lisp
 
@@ -34,6 +34,8 @@
 ;; encourage you to write libraries that do not show any unnecessary
 ;; warnings when compiled by a user.  Also see "Tips for Avoiding Compiler
 ;; Warnings" in the Emacs Lisp info page.
+
+;; TODO before releasing version 0.6 tests have to be written
 
 ;;; Code:
 
@@ -77,12 +79,13 @@ be done.  These steps are listed here.  After each step, if the behaviour
 has been unambiously decided, all remaining steps, and therefor the
 variables they depend on, don't have any effect.
 
-0. If `auto-compile-flag' is set locally obey it.
+0. If `auto-compile-flag' is set locally (as a buffer local value) obey
+   it.
 
 1. If `auto-compile-flag' is set globally to `ask-always' then ask the
    user.
 
-2. If `auto-compile-concider-no-byte' is set to nil file _might_ be
+2. If `auto-compile-concider-no-byte' is set to nil the file _might_ be
    compiles if and only if a byte file already exists. Otherwise if set
    to t file _might_ be compiled regardless if a byte file exists.
 
@@ -218,7 +221,7 @@ between this option and `auto-compile-include' are handled."
   :type '(repeat regexp))
 
 (defcustom auto-compile-concider-no-byte t
-  "If files for which no byte file exists are considered for compilation.
+  "Whether files with no matching byte file are considered for compilation.
 
 t   Concider file regardless if byte file exists.
 nil Only concider file if byte file exists."
@@ -278,13 +281,13 @@ function with a prefix argument in order to be asked again.
 
 This will modify `auto-compile-include' or `auto-compile-exclude'.  If
 this does not work multible expressions in these variables might match the
-file-name.  Try using this command again or customize these variables
+file name.  Try using this command again or customize these variables
 manually.
 
 The modifications made by this command are only in effect in the current
 session.  To save them permanently you have to use Custom.  You could also
-use library `cus-edit++.el' which prompts when exiting Emacs and
-customized options that have not been saved yet exist.
+use library `cus-edit++.el' which prompts when exiting Emacs and there are
+unsaved changes to custom options.
 
 If you have saved your choice by modifing the file itself this command
 fails and you have to remove the definition manually."
