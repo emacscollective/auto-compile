@@ -301,11 +301,15 @@ fails and you have to remove the definition manually."
   (auto-compile-modify-hooks 'remove-local))
 
 (defun auto-compile-file-do (file)
+  "Check parenthesis in FILE, then compile FILE.
+Always returns t."
   (check-parens)
   (byte-compile-file file)
   t)
 
 (defun auto-compile-file-ask (file)
+  "Ask the user whether to compile FILE.
+Always returns t."
   (let ((compile (yes-or-no-p (format "Compile %s " file)))
 	remember save)
     (when compile
@@ -348,6 +352,13 @@ fails and you have to remove the definition manually."
   t)
 
 (defun auto-compile-file-maybe ()
+  "Compile the file the current buffer is visiting, or not.
+
+Whether the file should be compiled is determined as described in the
+doc-string of `auto-compile-mode' and might require prompting for user
+input.
+
+The return value is not significant."
   (unless (bound-and-true-p inhibit-auto-compile)
     (let ((file buffer-file-name) byte-file)
       (when (and file
@@ -388,6 +399,13 @@ fails and you have to remove the definition manually."
 		 (auto-compile-file-ask file))))))))
 
 (defun auto-compile-file-match-1 (file regexps)
+  "Return the best match for FILE in REGEXPS.
+
+FILE has to be a file name and REGEXPS a list of regular expressions.
+Match each member of REGEXPS against FILE and return a cons cell whose car
+is the longest match produced by any member of REGEXP.  The cdr of the
+return value is t if the regular expression that produced that match ends
+with \"$\" or nil otherwise.  If no regular expression matches return nil."
   (let (regexp match tailp result)
     (while (setq regexp (pop regexps))
       (when (string-match
@@ -404,6 +422,11 @@ fails and you have to remove the definition manually."
     result))
 
 (defun auto-compile-file-match (file)
+  "Return t if FILE should be compiled, nil if not and 1 if unknown.
+
+Whether FILE should be compiled is determined if possible by comparing it
+with the values of `auto-compile-include' and `auto-compile-exclude' as
+described in point three in the doc-string of `auto-compile-mode'."
   (let ((include (auto-compile-file-match-1 file auto-compile-include))
 	(exclude (auto-compile-file-match-1 file auto-compile-exclude)))
     (if (and include exclude)
