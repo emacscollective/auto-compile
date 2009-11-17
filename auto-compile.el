@@ -87,19 +87,23 @@ variables they depend on, don't have any effect.
    to t file _might_ be compiled regardless if a byte file exists.
 
 3. If the file is explicitly included or excluded then do as requested.
+
    The regexps in `auto-compile-include' and `auto-compile-exclude' are
-   used for explicit inclusion and exclusion.  If a file matches a regexp
-   in both variables the following mechanism is used to determine the
-   closer match:
+   used for explicit inclusion and exclusion their values are lists of
+   regular expressions.
 
-   If one of the regexps matches file-names at the end (ends with $) then
-   that is assumed to be the closer match.  This allows to have a setting
-   for most files in a directory but another for some of them.
+   First the best match in each variable is determined independently.
+   The best match is usually the longest matched string.  But if one or
+   more of the regular expressions are used to match at the end of a
+   string (that is if it ends with $) then only the matches of such
+   regular expressions are compared by size.
 
-   If no or both regexps match file-names at the end then the length of
-   the matched strings are compared and the longer wins.  This allows to
-   have a setting for files in a directory but another for files in a
-   subdirectory.
+   Then the best match from each variable are compared.  If only one ends
+   with $ then it wins.  Otherwise if both or none end with $ the longer
+   one wins.
+
+   This mechanism, while somewhat complicated, allow rather sophisticated
+   rules.
 
 4. For all others files the global value of `auto-compile-flag' decides
    what should be done.
@@ -384,16 +388,19 @@ fails and you have to remove the definition manually."
 		 (auto-compile-file-ask file))))))))
 
 (defun auto-compile-file-match-1 (file regexps)
-  (let (regexp match result)
+  (let (regexp match tailp result)
     (while (setq regexp (pop regexps))
       (when (string-match
 	     (replace-regexp-in-string
 	      "^^?\\(~\\)/" (getenv "HOME") regexp nil nil 1)
 	     file)
-	(setq match (match-string 0 file))
-	(when (> (length match)
-		 (length (car result)))
-	  (setq result (cons match (string-match "\\$$" regexp))))))
+	(setq match (match-string 0 file)
+	      tailp (string-match "\\$$" regexp))
+	(when (if (eq tailp (cdr result))
+		  (> (length match)
+		     (length (car result)))
+		tailp)
+	  (setq result (cons match tailp)))))
     result))
 
 (defun auto-compile-file-match (file)
