@@ -4,8 +4,8 @@
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Updated: 20090802
-;; Version: 0.5.2
+;; Updated: 20091117
+;; Version: 0.5.2+
 ;; Homepage: https://github.com/tarsius/auto-compile
 ;; Keywords: compile, convenience, lisp
 
@@ -390,8 +390,8 @@ fails and you have to remove the definition manually."
 	regexp match result)
     (while (setq regexp (pop value))
       (when (string-match
-	     (replace-regexp-in-string "^^?\\(~\\)" regexp
-				       (getenv "HOME") nil nil 1)
+	     (replace-regexp-in-string
+	      "^^?\\(~\\)/" (getenv "HOME") regexp nil nil 1)
 	     file)
 	(setq match (match-string 0 file))
 	(when (> (length match)
