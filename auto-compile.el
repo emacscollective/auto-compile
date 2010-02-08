@@ -1,11 +1,11 @@
 ;;; auto-compile.el --- automatically compile Emacs Lisp files
 
-;; Copyright (C) 2008, 2009  Jonas Bernoulli
+;; Copyright (C) 2008, 2009, 2010  Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Updated: 20091117
-;; Version: 0.6_rc1
+;; Updated: 20100208
+;; Version: 0.6_rc1+
 ;; Homepage: https://github.com/tarsius/auto-compile
 ;; Keywords: compile, convenience, lisp
 
@@ -36,10 +36,10 @@
 ;; Warnings" in the Emacs Lisp info page.
 
 ;; TODO before releasing version 0.6 tests have to be written
+;; TODO document auto-compile-modify-hooks
 
 ;;; Code:
 
-(require 'cl)
 (require 'read-char-spec)
 
 (defgroup auto-compile nil
