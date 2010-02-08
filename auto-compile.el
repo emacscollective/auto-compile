@@ -36,7 +36,6 @@
 ;; Warnings" in the Emacs Lisp info page.
 
 ;; TODO before releasing version 0.6 tests have to be written
-;; TODO document auto-compile-modify-hooks
 
 ;;; Code:
 
@@ -48,6 +47,8 @@
   :link '(function-link auto-compile-mode))
 
 (defun auto-compile-modify-hooks (&optional local)
+  "Modify value of various hooks according to `auto-compile-when' and LOCAL.
+LOCAL if non-nil should be `remove-local' or `set-local'."
   (cond ((or (eq local 'remove-local)
 	     (and (not local)
 		  (not auto-compile-mode)))
@@ -97,8 +98,8 @@ variables they depend on, don't have any effect.
 
    First the best match in each variable is determined independently.
    The best match is usually the longest matched string.  But if one or
-   more of the regular expressions are used to match at the end of a
-   string (that is if it ends with $) then only the matches of such
+   more of the regular expressions that are used to match at the end of
+   a string (that is if it ends with $) then only the matches of such
    regular expressions are compared by size.
 
    Then the best match from each variable are compared.  If only one ends
@@ -280,7 +281,7 @@ If you have choosen to also save your choice then you have to call this
 function with a prefix argument in order to be asked again.
 
 This will modify `auto-compile-include' or `auto-compile-exclude'.  If
-this does not work multible expressions in these variables might match the
+this does not work multiple expressions in these variables might match the
 file name.  Try using this command again or customize these variables
 manually.
 
@@ -289,7 +290,7 @@ session.  To save them permanently you have to use Custom.  You could also
 use library `cus-edit++.el' which prompts when exiting Emacs and there are
 unsaved changes to custom options.
 
-If you have saved your choice by modifing the file itself this command
+If you have saved your choice by adding a file local variable this command
 fails and you have to remove the definition manually."
   (interactive "p")
   (kill-local-variable 'auto-compile-flag)
