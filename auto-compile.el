@@ -5,7 +5,7 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
 ;; Updated: 20100307
-;; Version: 0.6_rc2
+;; Version: 0.6
 ;; Homepage: https://github.com/tarsius/auto-compile
 ;; Keywords: compile, convenience, lisp
 
@@ -28,14 +28,6 @@
 
 ;; Automatically compile Emacs Lisp files when they are saved or when
 ;; their buffers are killed.  Also see `auto-compile-mode's doc-string.
-
-;; This library makes your life a bit easier, as it allows you to fix an
-;; error shortly after you have made it.  It is also my hope that it will
-;; encourage you to write libraries that do not show any unnecessary
-;; warnings when compiled by a user.  Also see "Tips for Avoiding Compiler
-;; Warnings" in the Emacs Lisp info page.
-
-;; TODO before releasing version 0.6 tests have to be written
 
 ;;; Code:
 
