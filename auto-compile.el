@@ -68,16 +68,16 @@ LOCAL if non-nil should be `remove-local' or `set-local'."
 (define-minor-mode auto-compile-mode
   "Automatically compile Emacs Lisp files.
 
-A file might be compiled everytime it is saved or only when it's buffer
+A file might be compiled every time it is saved or only when it's buffer
 is destroyed.  This is controlled through the option `auto-compile-when'.
 
 A file might be compiled (1) automatically, (2) after the user has been
 asked, (3) never.
 
-This behaviour depends on various variables described below. The function
+This behavior depends on various variables described below. The function
 `auto-compile-file-maybe' goes through various steps to decide what should
-be done.  These steps are listed here.  After each step, if the behaviour
-has been unambiously decided, all remaining steps, and therefor the
+be done.  These steps are listed here.  After each step, if the behavior
+has been unambiguously decided, all remaining steps, and therefor the
 variables they depend on, don't have any effect.
 
 0. If `auto-compile-flag' is set locally (as a buffer local value) obey
@@ -86,7 +86,7 @@ variables they depend on, don't have any effect.
 1. If `auto-compile-flag' is set globally to `ask-always' then ask the
    user.
 
-2. If `auto-compile-concider-no-byte' is set to nil the file _might_ be
+2. If `auto-compile-consider-no-byte' is set to nil the file _might_ be
    compiles if and only if a byte file already exists. Otherwise if set
    to t file _might_ be compiled regardless if a byte file exists.
 
@@ -118,7 +118,7 @@ variables they depend on, don't have any effect.
 
    t                Compile file without asking.
    nil              Don't compile file.
-   ask              Ask wether file should be compiled.
+   ask              Ask whether file should be compiled.
    compiledp        Recompile if compiled file exists; otherwise don't.
    compiledp-or-ask Recompile if compiled file exists; otherwise ask.
 
@@ -168,7 +168,7 @@ ask-always       Always ask whether file should be compiled.
 compiledp        Recompile if byte-file exists; otherwise don't.
 compiledp-or-ask Recompile if byte-file exists; otherwise ask.
 
-Exact behaviour depends on some other variables. See `auto-compile-mode'.
+Exact behavior depends on some other variables. See `auto-compile-mode'.
 
 This variable can be set locally for a file to t or nil.  If set locally
 the global value `ask-always' does not have any effect for the given file."
@@ -225,19 +225,19 @@ between this option and `auto-compile-include' are handled."
   :group 'auto-compile
   :type '(repeat regexp))
 
-(defcustom auto-compile-concider-no-byte nil
+(defcustom auto-compile-consider-no-byte nil
   "Whether files with no matching byte file are considered for compilation.
 
-t   Concider file regardless if byte file exists.
-nil Only concider file if byte file exists.
+t   Consider file regardless if byte file exists.
+nil Only consider file if byte file exists.
 
 If this is set to t you can still use command `byte-compile-file' to
 manually compile a file once and cause `auto-compile' to consider it
 in the future."
   :group 'auto-compile
   :type '(choice
-          (const :tag "Concider file regardless if byte file exists." t)
-          (const :tag "Only concider file if byte file exists." nil)))
+          (const :tag "Consider file regardless if byte file exists." t)
+          (const :tag "Only consider file if byte file exists." nil)))
 
 (defun toggle-local-auto-compile ()
   "Toggle the local buffer local value of `auto-compile-flag'.
@@ -246,7 +246,7 @@ This always toggles between t and nil.  If there is no local value yet
 and the global value isn't a boolean then set the local value to nil.
 
 This toggle is mainly intended for situations when you know that some file
-compile temporarly won't compile without errors and/or warnings or even is
+compile temporarily won't compile without errors and/or warnings or even is
 in an unbalanced state.
 
 If your library is in an balanced state and `auto-compile-when' is
@@ -259,7 +259,7 @@ After your library can be safely compiled again use command
 
 You can use the command even when `auto-compile-mode' is not enabled,
 allowing you to use this library in a less intrusive way only in situation
-when you want to explicetly update or test your changes but not call
+when you want to explicitly update or test your changes but not call
 `byte-compile-file' manually."
   (interactive)
   (make-local-variable 'auto-compile-flag)
@@ -285,7 +285,7 @@ you where already prompted whether to compile some file but have changed
 your mind.  The next time you will save the file (or kill the buffer) you
 are asked again.
 
-If you have choosen to also save your choice then you have to call this
+If you have chosen to also save your choice then you have to call this
 function with a prefix argument in order to be asked again.
 
 This will modify `auto-compile-include' or `auto-compile-exclude'.  If
@@ -314,14 +314,14 @@ fails and you have to remove the definition manually."
 
 (defun auto-compile-file-do (file)
   "Check parenthesis in FILE, then compile FILE.
-Always returns t."
+Always return t."
   (check-parens)
   (byte-compile-file file)
   t)
 
 (defun auto-compile-file-ask (file)
   "Ask the user whether to compile FILE.
-Always returns t."
+Always return t."
   (let ((compile (yes-or-no-p (format "Compile %s " file)))
 	remember save)
     (when compile
@@ -392,7 +392,7 @@ The return value is not significant."
 	      ((eq auto-compile-flag 'ask-always)
 	       (auto-compile-file-ask file))
 	      ;; 2. missing required byte file
-	      ((and (not auto-compile-concider-no-byte)
+	      ((and (not auto-compile-consider-no-byte)
 		    (not (file-exists-p byte-file))))
 	      ;; 3. automatic inclusion/exclusion
 	      ((case (auto-compile-file-match file)
