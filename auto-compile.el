@@ -90,6 +90,10 @@ variables they depend on, don't have any effect.
    compiles if and only if a byte file already exists. Otherwise if set
    to t file _might_ be compiled regardless if a byte file exists.
 
+   If this is set to t you can still use command `byte-compile-file' to
+   manually compile a file once and cause `auto-compile' to consider it
+   in the future.
+
 3. If the file is explicitly included or excluded then do as requested.
 
    The regexps in `auto-compile-include' and `auto-compile-exclude' are
@@ -154,7 +158,7 @@ This variable can be set locally for a file."
 
 (put 'auto-compile-when 'safe-local-variable 'booleanp)
 
-(defcustom auto-compile-flag 'ask
+(defcustom auto-compile-flag 'compiledp-or-ask
   "Level of automation when compiling files.
 
 t                Compile file if it has not explicitly been excluded.
@@ -179,7 +183,7 @@ the global value `ask-always' does not have any effect for the given file."
 
 (put 'auto-compile-flag 'safe-local-variable 'booleanp)
 
-(defcustom auto-compile-remember 'ask
+(defcustom auto-compile-remember 'save
   "Duration for which user choices should be remembered.
 
 session Remember choice for this session only.
@@ -221,11 +225,15 @@ between this option and `auto-compile-include' are handled."
   :group 'auto-compile
   :type '(repeat regexp))
 
-(defcustom auto-compile-concider-no-byte t
+(defcustom auto-compile-concider-no-byte nil
   "Whether files with no matching byte file are considered for compilation.
 
 t   Concider file regardless if byte file exists.
-nil Only concider file if byte file exists."
+nil Only concider file if byte file exists.
+
+If this is set to t you can still use command `byte-compile-file' to
+manually compile a file once and cause `auto-compile' to consider it
+in the future."
   :group 'auto-compile
   :type '(choice
           (const :tag "Concider file regardless if byte file exists." t)
