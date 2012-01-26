@@ -1,11 +1,10 @@
-;;; auto-compile.el --- automatically compile Emacs Lisp files
+;;; auto-compile.el --- compile Emacs Lisp files after visiting buffers are saved
 
-;; Copyright (C) 2008, 2009, 2010  Jonas Bernoulli
+;; Copyright (C) 2008-2012  Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Updated: 20100307
-;; Version: 0.6
+;; Version: 0.7.0-pre
 ;; Homepage: https://github.com/tarsius/auto-compile
 ;; Keywords: compile, convenience, lisp
 
@@ -21,426 +20,355 @@
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
-;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; For a full copy of the GNU General Public License
+;; see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; Automatically compile Emacs Lisp files when they are saved or when
-;; their buffers are killed.  Also see `auto-compile-mode's doc-string.
+;; This package provides the minor mode `auto-compile-global-mode' which
+;; automatically compiles Emacs Lisp code when the visiting buffers are
+;; saved to their source files, provided that the respective byte code
+;; files already exists.  If the byte code file does not already exist
+;; nothing is done.
+
+;; To start or stop compiling a source file or multiple files at once use
+;; the command `toggle-auto-compile' which toggles automatic compilation
+;; by either compiling the selected source file(s) or by removing the
+;; respective byte code file(s).  The appropriate action is determined by
+;; the existence respectively absence of the byte code file.
+
+;; Automatically compiling Emacs Lisp source files after each save is
+;; useful for at least the following reasons:
+
+;; * Emacs prefers the byte code file over the source file even if the
+;;   former is outdated.  Without a mode which automatically recompiles
+;;   the source files you will at least occasionally forget to do so
+;;   manually and end up with an old version of your code being loaded.
+
+;; * There are many otherwise fine libraries to be found on the Internet
+;;   which when compiled will confront the user with a wall of compile
+;;   warnings and an occasional error.  If authors are informed about
+;;   these (often trivial) problems after each save they will likely fix
+;;   them quite quickly.  That or they have a high noise tolerance.
+
+;; * It's often easier and less annoying to fix errors and warnings as
+;;   they are introduced than to do a "let's compile today's work and see
+;;   how it goes".
+
+;; So do yourself and others a favor and enable this mode by adding the
+;; following to your init file:
+;;
+;;     (auto-compile-global-mode 1)
+
+;; Auto-Compile mode is designed to stay out of your way as much as it
+;; can while still motivating you to get things fixed.  But Auto-Compile
+;; mode can also be configured to be more insistent, which might be
+;; annoying initially but less so once existing problems have been fixed.
+
+;; Occasionally you might be tempted to turn of Auto-Compile mode locally
+;; because you are doing some work which causes lots of expected warnings
+;; until you are actually done.  Don't do so: because Emacs prefers the
+;; byte code file you would also have to remove that, in which case you
+;; don't have to turn of this mode anymore.  In other words use the
+;; command `toggle-auto-compile' instead.
+
+;; Also note that just because no warnings and/or errors are reported when
+;; Auto-Compile mode compiles a source file this does not necessarily mean
+;; that users of your libraries won't see any.  A likely cause for this
+;; would be that you forgot to require a feature which is loaded on your
+;; system but not necessarily on the users' systems.  So you should still
+;; manually compile your packages before release:
+;;
+;;     emacs -batch -q --no-site-file \
+;;       -L . -L ../dependency/ -f batch-byte-compile *.el
 
 ;;; Code:
 
-(require 'read-char-spec)
-
 (defgroup auto-compile nil
-  "Automatically compile Emacs Lisp files."
-  :group 'Convenience
+  "Compile Emacs Lisp source files after the visiting buffers are saved."
+  :group 'convenience
+  :prefix 'auto-compile
+  :link '(function-link toggle-auto-compile)
+  :link '(function-link auto-compile-byte-compile)
   :link '(function-link auto-compile-mode))
-
-(defun auto-compile-modify-hooks (&optional local)
-  "Modify value of various hooks according to `auto-compile-when' and LOCAL.
-LOCAL if non-nil should be `remove-local' or `set-local'."
-  (cond ((or (eq local 'remove-local)
-	     (and (not local)
-		  (not auto-compile-mode)))
-	 (remove-hook 'after-save-hook  'check-parens local)
-	 (remove-hook 'after-save-hook  'auto-compile-file-maybe local)
-	 (remove-hook 'kill-buffer-hook 'auto-compile-file-maybe local))
-	((eq auto-compile-when t)
-	 (remove-hook 'after-save-hook  'check-parens local)
-	 (add-hook    'after-save-hook  'auto-compile-file-maybe t local)
-	 (remove-hook 'kill-buffer-hook 'auto-compile-file-maybe local))
-	(t
-	 (add-hook    'after-save-hook  'check-parens t local)
-	 (remove-hook 'after-save-hook  'auto-compile-file-maybe local)
-	 (add-hook    'kill-buffer-hook 'auto-compile-file-maybe local))))
 
 ;;;###autoload
 (define-minor-mode auto-compile-mode
-  "Automatically compile Emacs Lisp files.
+  "Compile Emacs Lisp source files after the visiting buffers are saved.
 
-A file might be compiled every time it is saved or only when it's buffer
-is destroyed.  This is controlled through the option `auto-compile-when'.
-
-A file might be compiled (1) automatically, (2) after the user has been
-asked, (3) never.
-
-This behavior depends on various variables described below. The function
-`auto-compile-file-maybe' goes through various steps to decide what should
-be done.  These steps are listed here.  After each step, if the behavior
-has been unambiguously decided, all remaining steps, and therefor the
-variables they depend on, don't have any effect.
-
-0. If `auto-compile-flag' is set locally (as a buffer local value) obey
-   it.
-
-1. If `auto-compile-flag' is set globally to `ask-always' then ask the
-   user.
-
-2. If `auto-compile-consider-no-byte' is set to nil the file _might_ be
-   compiles if and only if a byte file already exists. Otherwise if set
-   to t file _might_ be compiled regardless if a byte file exists.
-
-   If this is set to t you can still use command `byte-compile-file' to
-   manually compile a file once and cause `auto-compile' to consider it
-   in the future.
-
-3. If the file is explicitly included or excluded then do as requested.
-
-   The regexps in `auto-compile-include' and `auto-compile-exclude' are
-   used for explicit inclusion and exclusion their values are lists of
-   regular expressions.
-
-   First the best match in each variable is determined independently.
-   The best match is usually the longest matched string.  But if one or
-   more of the regular expressions that are used to match at the end of
-   a string (that is if it ends with $) then only the matches of such
-   regular expressions are compared by size.
-
-   Then the best match from each variable are compared.  If only one ends
-   with $ then it wins.  Otherwise if both or none end with $ the longer
-   one wins.
-
-   This mechanism, while somewhat complicated, allow rather sophisticated
-   rules.
-
-4. For all others files the global value of `auto-compile-flag' decides
-   what should be done.
-
-   t                Compile file without asking.
-   nil              Don't compile file.
-   ask              Ask whether file should be compiled.
-   compiledp        Recompile if compiled file exists; otherwise don't.
-   compiledp-or-ask Recompile if compiled file exists; otherwise ask.
-
-After the user was prompted whether to compile some file the choice can be
-saved.  See option `auto-compile-remember'.
-
-Before a file is actually compiled `check-paren' is called, which
-in case of an unmatched bracket or quote positions point near the error.
-When only compiling upon killing of a file-visiting buffers you can still
-choose to always call `check-paren' when saving.  See option
-`auto-compile-when'.
-
-When turned on `auto-compile-mode' is in effect in all buffer visiting
-Emacs Lisp files.  Though it might not have an effect in some of them as
-described above.  You can also toggle automatic compilation on and off in
-a given buffer using `toggle-local-auto-compile'.  This even works if
-`auto-compile-mode' is not turned on."
-  :global t
-  (auto-compile-modify-hooks))
-
-(defcustom auto-compile-when t
-  "Event triggering compilation.
-
-t   Compile when saving file.
-nil Compile when killing buffer.
-1   Compile when killing buffer; check parentheses when saving
-
-This variable can be set locally for a file."
+After a buffer containing Emacs Lisp code is saved to its source file
+update the respective byte code file.  If the latter does not exist do
+nothing.  Therefor to disable automatic compilation remove the byte code
+file.  See command `toggle-auto-compile' for a convenient way to do so."
+  :lighter auto-compile-mode-lighter
   :group 'auto-compile
-  :type '(choice
-	  (const :tag "Compile when saving" t)
-	  (const :tag "Compile when killing buffer." nil)
-	  (const :tag "Compile when killing buffer; check parens when saving." 1))
-  :set (lambda (variable value)
-	 (set-default variable value)
-	 (auto-compile-modify-hooks)))
+  (if auto-compile-mode
+      (add-hook  'after-save-hook 'auto-compile-byte-compile nil t)
+    (remove-hook 'after-save-hook 'auto-compile-byte-compile t)))
 
-(put 'auto-compile-when 'safe-local-variable 'booleanp)
+;;;###autoload
+(define-globalized-minor-mode auto-compile-global-mode
+  auto-compile-mode auto-compile-on)
 
-(defcustom auto-compile-flag 'compiledp-or-ask
-  "Level of automation when compiling files.
+(defun auto-compile-on ()
+  (when (eq major-mode 'emacs-lisp-mode)
+    (auto-compile-mode 1)))
 
-t                Compile file if it has not explicitly been excluded.
-nil              Only compile file if it has explicitly been included.
-ask              Ask whether file should be compiled.
-ask-always       Always ask whether file should be compiled.
-compiledp        Recompile if byte-file exists; otherwise don't.
-compiledp-or-ask Recompile if byte-file exists; otherwise ask.
+(defcustom auto-compile-always-recompile t
+  "Whether to recompile all source files when turning on auto compilation.
 
-Exact behavior depends on some other variables. See `auto-compile-mode'.
+When turning on auto compilation for files in a directory recompile source
+files even if their byte code file already exist and are up-to-date.
 
-This variable can be set locally for a file to t or nil.  If set locally
-the global value `ask-always' does not have any effect for the given file."
-  :group 'auto-compile
-  :type '(choice
-          (const :tag "Compile file if it has not explicitly been excluded." t)
-          (const :tag "Only compile file if it has explicitly been included." nil)
-          (const :tag "Ask whether file should be compiled." ask)
-          (const :tag "Always ask whether file should be compiled." ask-always)
-          (const :tag "Recompile if byte-file exists; otherwise don't." compiledp)
-          (const :tag "Recompile if byte-file exists; otherwise ask." compiledp-or-ask)))
+If you disable this you may alternatively turn off, then turn on again
+auto compilation to recompile all files in the directory."
+  :type 'boolean)
 
-(put 'auto-compile-flag 'safe-local-variable 'booleanp)
+(defcustom auto-compile-recursive "^[^.]"
+  "Whether to recurse into subdirectories when toggling auto compilation.
 
-(defcustom auto-compile-remember 'save
-  "Duration for which user choices should be remembered.
+Must be a boolean or a regular expression in which case only directories
+whose file-name match are recursed into.  The files in a directory
+explicitly selected are always processed."
+  :type '(choice (const  :tag "All subdirectories" t)
+		 (const  :tag "Non-hidden subdirectories" "^[^.]")
+		 (string :tag "Matching subdirectories")
+		 (const  :tag "Don't" nil)))
 
-session Remember choice for this session only.
-save    Remember for future sessions.
-ask     Ask whether to remember choice.
-nil     Don't remember choice."
-  :group 'auto-compile
-  :type '(choice
-	  (const :tag "Remember choice for this session only." session)
-	  (const :tag "Remember choice for future sessions." save)
-	  (const :tag "Ask whether to remember choice." ask)
-	  (const :tag "Don't remember choice." nil)))
+(defcustom auto-compile-check-parens t
+  "Whether to check for unbalanced parentheses before compiling.
 
-(defcustom auto-compile-include nil
-  "List of inclusion regular expressions for automatic compilation.
+This only has as an effect on files which are currently being visited in
+a buffer other files are compiled without this prior check.  If unbalanced
+parentheses are found no attempt is made to compile the file as that would
+obviously fail also."
+  :type 'boolean)
 
-Matching files are automatically compiled.
+(defcustom auto-compile-visit-failed t
+  "Whether to visit source files which failed to compile.
 
-Entries can start with \"~\" which will be replaced with the users home
-directory before the entry is actually used as regular expression.  This
-also works if an entry starts with \"^~\".
+If this is non-nil visit but don't select a source file if it isn't being
+visited in a buffer already.  Also set the buffer local value of variable
+`auto-compile-pretend-byte-compiled' (which see) to t and mark the buffer
+as modified if the value of variable `auto-compile-mark-failed-modified'
+is non-nil."
+  :type 'boolean)
 
-See `auto-compile-mode' for a description of how conflicts
-between this option and `auto-compile-exclude' are handled."
-  :group 'auto-compile
-  :type '(repeat regexp))
+(defcustom auto-compile-mark-failed-modified t
+  "Whether to mark buffers which failed to compile as modified.
 
-(defcustom auto-compile-exclude nil
-  "List of exclusion regular expressions for automatic compilation.
+This serves as a reminder to fix fatal errors.  While useful this can
+get annoying so this variable can be quickly toggled with the command
+`auto-compile-toggle-mark-failed-modified'."
+  :type 'boolean)
 
-Matching files are excluded from automatic compilation.
+;; TODO
+(defcustom auto-compile-error-on-warn nil
+  "Whether to treat compile warnings as errors.
 
-Entries can start with \"^~\" which will be replaced with the users home
-directory before the entry is actually used as regular expression.  This
-also works if an entry starts with \"^~\".
+If this is t treat any compile warning as an error which may (depending
+on the values of other options) cause the failing source file to be
+visited and/or the visiting buffer marked as modified.
 
-See `auto-compile-mode' for a description of how conflicts
-between this option and `auto-compile-include' are handled."
-  :group 'auto-compile
-  :type '(repeat regexp))
+This can quickly become annoying when contributing to libraries where you
+cannot enforce a strict \"no warnings\" rule; so you can limit this
+behavior to files you maintain yourself by setting this to your name
+which has to match the name specified in the author and/or maintainer
+line of the file header."
+  :type `(choice boolean
+		 ,@(when user-full-name
+		     `((const :tag (concat "by " ,user-full-name)
+			      ,user-full-name)))
+		 (string :tag "by Author/Maintainer")))
 
-(defcustom auto-compile-consider-no-byte nil
-  "Whether files with no matching byte file are considered for compilation.
+(defcustom auto-compile-ding t
+  "Whether to beep (or flash the screen) when an error occurs.
 
-t   Consider file regardless if byte file exists.
-nil Only consider file if byte file exists.
+Auto-Compile mode continues after an errors occurs (compile error,
+unmatched parens, or failure to remove file) because aborting and
+therefor not processing the remaining files would be confusing.  Instead
+it continues and beeps or flashes the screen to get the users attention;
+set this variable to nil to disable even that."
+  :type 'boolean)
 
-If this is set to t you can still use command `byte-compile-file' to
-manually compile a file once and cause `auto-compile' to consider it
-in the future."
-  :group 'auto-compile
-  :type '(choice
-          (const :tag "Consider file regardless if byte file exists." t)
-          (const :tag "Only consider file if byte file exists." nil)))
+(defvar auto-compile-mode-lighter ""
+  "Mode lighter for Auto-Compile Mode.")
 
-(defun toggle-local-auto-compile ()
-  "Toggle the local buffer local value of `auto-compile-flag'.
+;;;###autoload
+(defun toggle-auto-compile (file action)
+  "Toggle automatic compilation of an Emacs Lisp source file or files.
 
-This always toggles between t and nil.  If there is no local value yet
-and the global value isn't a boolean then set the local value to nil.
+Read a file or directory name from the minibuffer defaulting to the
+visited Emacs Lisp source file or `default-directory' if no such file is
+being visited in the current buffer.  If the user exits with a directory
+selected then all source files in that directory will have their status
+set, otherwise just the selected file.
 
-This toggle is mainly intended for situations when you know that some file
-compile temporarily won't compile without errors and/or warnings or even is
-in an unbalanced state.
+Toggling happens by either compiling the source files(s) or by removing
+the respective byte code file(s).  See `auto-compile-mode'.
 
-If your library is in an balanced state and `auto-compile-when' is
-customized to check if it is well balanced this would annoyingly jump to
-the error doing exactly what you wanted to avoid.  In order to prevent
-this `auto-compile-when' is locally set to t if it's global value is 1.
+The appropriate action is determined by the existence respectively absence
+of the byte code file for the selected source file.  If a directory was
+selected but a source file was current when this command was invoked
+use that file to determine the action.  Otherwise prompt the user.
 
-After your library can be safely compiled again use command
-`auto-compile-kill-local' to remove all relevant local variables.
+To explicitly select an action use a positive prefix argument to compile
+the source file(s) or a negative prefix argument to remove the respective
+byte code file(s).
 
-You can use the command even when `auto-compile-mode' is not enabled,
-allowing you to use this library in a less intrusive way only in situation
-when you want to explicitly update or test your changes but not call
-`byte-compile-file' manually."
+Note that even when a directory was selected, the action is determined
+only once and then applied to all source files regardless of the presence
+or absence of the respective byte code files."
+  (interactive
+   (let* ((buf  (current-buffer))
+	  (file (when (eq major-mode 'emacs-lisp-mode)
+		  (buffer-file-name)))
+	  (action
+	   (cond
+	    (current-prefix-arg
+	     (if (> (prefix-numeric-value current-prefix-arg) 0)
+		 'start
+	       'quit))
+	    (file
+	     (if (or (file-exists-p (byte-compile-dest-file file))
+		     (and (eq major-mode 'emacs-lisp-mode)
+			  (file-exists-p (byte-compile-dest-file
+					  (buffer-file-name buf)))))
+		 'quit
+	       'start))
+	    (t
+	     (case (read-char-choice
+		    "Toggle automatic compilation (s=tart, q=uit, C-g)? "
+		    '(?s ?q))
+	       (?s 'start)
+	       (?q 'quit))))))
+     (list (read-file-name (concat (capitalize (symbol-name action))
+				   " auto-compiling: ")
+			   (when file (file-name-directory file))
+			   nil t
+			   (when file (file-name-nondirectory file)))
+	   action)))
+  (if (file-regular-p file)
+      (case action
+	(start (auto-compile-byte-compile file t))
+	(quit  (auto-compile-delete-dest (byte-compile-dest-file file))))
+    (when (called-interactively-p 'any)
+      (let ((log (get-buffer byte-compile-log-buffer)))
+	(when log
+	  (kill-buffer log))))
+    (dolist (f (directory-files file t))
+      (cond
+       ((file-directory-p f)
+	(when (and auto-compile-recursive
+		   (or (not (stringp auto-compile-recursive))
+		       (string-match
+			auto-compile-recursive
+			(file-name-nondirectory (directory-file-name f)))))
+	  (toggle-auto-compile f action)))
+       ((eq action 'start)
+	(when (and (string-match "\\.el\\(\\.gz\\)?$" f) ; FIXME
+		   (file-exists-p f)
+		   (or auto-compile-always-recompile
+		       (file-newer-than-file-p f (byte-compile-dest-file f)))
+		   (or (not (string-match "^\\.?#" (file-name-nondirectory f)))
+		       (file-exists-p (byte-compile-dest-file f))))
+	  (auto-compile-byte-compile f t)))
+       ((string-match "\\.elc\\(\\.gz\\)?$" f)
+	(if (file-exists-p (auto-compile-source-file f))
+	    (auto-compile-delete-dest f)
+	  (message "Source file was not found; keeping %s" f)))))))
+
+;; TODO optionally local, report new state
+(defun auto-compile-toggle-mark-failed-modified ()
+  "Toggle whether buffers which failed to compile are marked as modified."
   (interactive)
-  (make-local-variable 'auto-compile-flag)
-  (cond ((memq auto-compile-flag '(t 1))
-	 (unless auto-compile-mode
-	   (auto-compile-modify-hooks 'set-local))
-	 (when (eq auto-compile-flag 1)
-	   (make-local-variable 'auto-compile-flag)
-	   (setq auto-compile-when t))
-	 (setq auto-compile-flag nil)
-	 (message "Automatic compilation locally disabled"))
-	(t
-	 (setq auto-compile-flag t)
-	 (message "Automatic compilation locally enabled"))))
+  (setq auto-compile-mark-failed-modified
+	(not auto-compile-mark-failed-modified)))
 
-(defalias 'auto-compile-toggle-local 'toggle-local-auto-compile)
+(defvar auto-compile-pretend-byte-compiled nil
+  "Whether to try again to compile this file after a failed attempt.
 
-(defun auto-compile-kill-local (&optional zap)
-  "Kill all local `auto-compile' variables possibly zapping memory.
+Command `auto-compile-byte-compile' sets this buffer local variable to t
+after failing to compile a source file being visited in a buffer (or when
+variable `auto-compile-visit-failed' is non-nil) causing it to try again
+when being called again.  Command `toggle-auto-compile' will also pretend
+the byte code file exists.")
+(make-variable-buffer-local 'auto-compile-pretend-byte-compiled)
 
-This is useful after you have used `toggle-local-auto-compile' or when
-you where already prompted whether to compile some file but have changed
-your mind.  The next time you will save the file (or kill the buffer) you
-are asked again.
+(defun auto-compile-byte-compile (&optional file start)
+  "Perform byte compilation for Auto-Compile mode."
+  (let (dest buf)
+    (when (and file
+	       (setq buf (get-file-buffer file))
+	       (buffer-modified-p buf)
+	       (y-or-n-p (format "Save buffer %s first? " (buffer-name buf))))
+      (with-current-buffer buf (save-buffer)))
+    (unless file
+      (setq file (buffer-file-name)
+	    buf  (get-file-buffer file)))
+    (catch 'auto-compile
+      (when (and auto-compile-check-parens buf)
+	(condition-case check-parens
+	    (save-restriction
+	      (widen)
+	      (check-parens))
+	  (error
+	   (auto-compile-handle-compile-error file buf)
+	   (throw 'auto-compile nil))))
+      (when (or start
+		(file-exists-p (byte-compile-dest-file file))
+		(when buf
+		  (with-current-buffer buf
+		    auto-compile-pretend-byte-compiled)))
+	(condition-case byte-compile
+	    (progn
+	      (byte-compile-file file)
+	      (when buf
+		(with-current-buffer buf
+		  (kill-local-variable auto-compile-pretend-byte-compiled))))
+	  (file-error
+	   (message "Byte-compiling %s failed" file)
+	   (auto-compile-handle-compile-error file buf)))))))
 
-If you have chosen to also save your choice then you have to call this
-function with a prefix argument in order to be asked again.
+(defun auto-compile-delete-dest (dest &optional failurep)
+  (unless failurep
+    (let ((buf (get-file-buffer (auto-compile-source-file dest))))
+      (when buf
+	(with-current-buffer buf
+	  (kill-local-variable 'auto-compile-pretend-byte-compiled)))))
+  (condition-case nil
+      (when (file-exists-p dest)
+	(message "Deleting %s..." dest)
+	(delete-file dest))
+    (file-error
+     (auto-compile-ding)
+     (message "Deleting %s...failed" dest))))
 
-This will modify `auto-compile-include' or `auto-compile-exclude'.  If
-this does not work multiple expressions in these variables might match the
-file name.  Try using this command again or customize these variables
-manually.
+(defun auto-compile-handle-compile-error (file buf)
+  (auto-compile-ding)
+  (let ((dest (byte-compile-dest-file file)))
+    (when (file-exists-p dest)
+      (auto-compile-delete-dest dest t)))
+  (when (or buf
+	    (and auto-compile-visit-failed
+		 (setq buf (find-file-noselect file))))
+    (with-current-buffer buf
+      (setq auto-compile-pretend-byte-compiled t)
+      (when auto-compile-mark-failed-modified
+	(set-buffer-modified-p t)))))
 
-The modifications made by this command are only in effect in the current
-session.  To save them permanently you have to use Custom.  You could also
-use library `cus-edit++.el' which prompts when exiting Emacs and there are
-unsaved changes to custom options.
+(defun auto-compile-source-file (dest)
+  (let ((standard (concat (file-name-sans-extension dest) ".el"))
+	(suffixes load-file-rep-suffixes)
+	file)
+    (while (and (not file) suffixes)
+      (unless (file-exists-p (setq file (concat standard (pop suffixes))))
+	(setq file nil)))
+    (or file standard)))
 
-If you have saved your choice by adding a file local variable this command
-fails and you have to remove the definition manually."
-  (interactive "p")
-  (kill-local-variable 'auto-compile-flag)
-  (when zap
-    (let ((match (auto-compile-file-match (buffer-file-name))))
-      (when match
-	(remove (cadr match)
-		(symbol-value (if (car match)
-				  'auto-compile-include
-				'auto-compile-exclude))))))
-  (kill-local-variable 'auto-compile-when)
-  (auto-compile-modify-hooks 'remove-local))
-
-(defun auto-compile-file-do (file)
-  "Check parenthesis in FILE, then compile FILE.
-Always return t."
-  (check-parens)
-  (byte-compile-file file)
-  t)
-
-(defun auto-compile-file-ask (file)
-  "Ask the user whether to compile FILE.
-Always return t."
-  (let ((compile (yes-or-no-p (format "Compile %s " file)))
-	remember save)
-    (when compile
-      (auto-compile-file-do file))
-    (case auto-compile-remember
-      (session (setq remember t))
-      (save (setq remember t save 'list))
-      (ask (eval (read-char-spec
-		  "Remember choice? "
-		  '((?y (setq remember t)
-			"Remember choice until buffer is closed.")
-		    (?s (setq remember t save 'list)
-			"Do not remember choice, ask again.")
-		    (?f (setq remember t save 'file)
-			"Remember choice and save in variable.")
-		    (?n nil
-			"Remember choice and save in file."))))))
-    (when remember
-      (make-local-variable 'auto-compile-flag)
-      (setq auto-compile-flag compile))
-    (case save 
-      (file (unless (require 'save-local-vars nil t)
-	      (error "Library save-local-vars required to save choice in file"))
-	    (with-no-warnings
-	      (save-local-variable 'auto-compile-flag)))
-      (list (let* ((symbol (if compile
-			       'auto-compile-include
-			     'auto-compile-exclude))
-		   (value (cons (concat "^" (regexp-quote file))
-				(symbol-value symbol))))
-	      (set symbol value)
-	      (put symbol 'saved-value (list (custom-quote value)))
-	      (put symbol 'customized-value nil)
-	      (unless (featurep 'cus-edit+)
-		(custom-push-theme 'theme-value symbol 'user 'set value)))
-	    (custom-save-all)))
-    (let ((buffer (get-buffer "*Auto-Compile Help*")))
-      (when buffer
-	(kill-buffer-and-its-windows buffer))))
-  t)
-
-(defun auto-compile-file-maybe ()
-  "Compile the file the current buffer is visiting, or not.
-
-Whether the file should be compiled is determined as described in the
-doc-string of `auto-compile-mode' and might require prompting for user
-input.
-
-The return value is not significant."
-  (unless (bound-and-true-p inhibit-auto-compile)
-    (let ((file buffer-file-name) byte-file)
-      (when (and file
-		 (or (string-match "\\.el\\(\\.gz\\)?\\'" file)
-		     (eq major-mode 'emacs-lisp-mode)))
-	(setq byte-file (cond ((string-match "\\.el\\'" file)
-			       (concat file "c"))
-			      ((string-match "\\.el.gz\\'" file)
-			       (concat (substring file 0 -3) "c"))
-			      (t
-			       (concat file ".elc"))))
-	;; See `auto-compile-mode's doc-string for explanation.
-	(cond ((file-newer-than-file-p byte-file file))
-	      ;; 0. obey local flag
-	      ((local-variable-p 'auto-compile-flag)
-	       (when (eq auto-compile-flag t)
-		 (auto-compile-file-do file)))
-	      ;; 1. ask if we always ask
-	      ((eq auto-compile-flag 'ask-always)
-	       (auto-compile-file-ask file))
-	      ;; 2. missing required byte file
-	      ((and (not auto-compile-consider-no-byte)
-		    (not (file-exists-p byte-file))))
-	      ;; 3. automatic inclusion/exclusion
-	      ((case (auto-compile-file-match file)
-		 (1) ((nil) t) (t (auto-compile-file-do file))))
-	      ;; 4. obey global flag
-	      ((eq auto-compile-flag t)
-	       (auto-compile-file-do file))
-	      ((eq auto-compile-flag 'ask)
-	       (auto-compile-file-ask file))
-	      ((and (eq auto-compile-flag 'compiledp)
-		    (file-exists-p byte-file))
-	       (auto-compile-file-do file))
-	      ((eq auto-compile-flag 'compiledp-or-ask)
-	       (if (file-exists-p byte-file)
-		   (auto-compile-file-do file)
-		 (auto-compile-file-ask file))))))))
-
-(defun auto-compile-file-match-1 (file regexps)
-  "Return the best match for FILE in REGEXPS.
-
-FILE has to be a file name and REGEXPS a list of regular expressions.
-Match each member of REGEXPS against FILE and return a cons cell whose car
-is the longest match produced by any member of REGEXP.  The cdr of the
-return value is t if the regular expression that produced that match ends
-with \"$\" or nil otherwise.  If no regular expression matches return nil."
-  (let (regexp match tailp result)
-    (while (setq regexp (pop regexps))
-      (when (string-match
-	     (replace-regexp-in-string
-	      "^^?\\(~\\)/" (getenv "HOME") regexp nil nil 1)
-	     file)
-	(setq match (match-string 0 file)
-	      tailp (string-match "\\$$" regexp))
-	(when (if (eq tailp (cdr result))
-		  (> (length match)
-		     (length (car result)))
-		tailp)
-	  (setq result (cons match tailp)))))
-    result))
-
-(defun auto-compile-file-match (file)
-  "Return t if FILE should be compiled, nil if not and 1 if unknown.
-
-Whether FILE should be compiled is determined if possible by comparing it
-with the values of `auto-compile-include' and `auto-compile-exclude' as
-described in point three in the doc-string of `auto-compile-mode'."
-  (let ((include (auto-compile-file-match-1 file auto-compile-include))
-	(exclude (auto-compile-file-match-1 file auto-compile-exclude)))
-    (if (and include exclude)
-	(or (and (cdr include)
-		 (not (cdr exclude)))
-	    (>= (length (car include))
-		(length (car exclude))))
-      (if (or include exclude)
-	  (not exclude)
-	1))))
+(defun auto-compile-ding ()
+  (when auto-compile-ding
+    (ding)))
 
 (provide 'auto-compile)
 ;;; auto-compile.el ends here
