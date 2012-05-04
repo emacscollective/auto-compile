@@ -114,6 +114,11 @@ file.  See command `toggle-auto-compile' for a convenient way to do so."
   (when (eq major-mode 'emacs-lisp-mode)
     (auto-compile-mode 1)))
 
+(defcustom auto-compile-verbose nil
+  "Whether to print messages describing progress of byte-compiler."
+  :group 'auto-compile
+  :type 'boolean)
+
 (defcustom auto-compile-always-recompile t
   "Whether to recompile all source files when turning on auto compilation.
 
@@ -321,7 +326,7 @@ the byte code file exists.")
 		  (with-current-buffer buf
 		    auto-compile-pretend-byte-compiled)))
 	(condition-case byte-compile
-	    (progn
+	    (let ((byte-compile-verbose auto-compile-verbose))
 	      (byte-compile-file file)
 	      (when buf
 		(with-current-buffer buf
