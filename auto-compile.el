@@ -462,5 +462,41 @@ the byte code file exists.")
     (select-window (posn-window (event-start event)))
     (auto-compile-byte-compile (buffer-file-name) t)
     (force-mode-line-update)))
+
+
+;;; Auto-Compile-On-Load Mode.
+
+(define-minor-mode auto-compile-on-load-mode
+  "Compile Emacs Lisp source files on load if the byte-compiled is outdated."
+  :lighter auto-compile-on-load-mode-lighter
+  :group 'auto-compile
+  :global t
+  (if auto-compile-on-load-mode
+      (setq auto-compile-old-load-source-file-function
+	    load-source-file-function
+	    load-source-file-function
+	    'auto-compile-load-source-file)
+    (setq load-source-file-function
+	  auto-compile-old-load-source-file-function)))
+
+(defun auto-compile-load-source-file (fullname file &optional noerror nomessage)
+  (let ((dest (byte-compile-dest-file fullname)))
+    (condition-case nil
+	(when (and (file-exists-p dest)
+		   (file-newer-than-file-p fullname dest))
+	  (message "Replacing out-dated on load %s..." dest)
+	  (byte-compile-file fullname)
+	  (message "Replacing out-dated on load %s...done" dest))
+      (error
+       (message "Replacing out-dated on load %s...failed" dest)
+       (auto-compile-delete-dest dest t))))
+  (funcall auto-compile-old-load-source-file-function
+	   fullname file noerror nomessage))
+
+(defvar auto-compile-on-load-mode-lighter ""
+  "Mode lighter for Auto-Compile-On-Load Mode.")
+
+(defvar auto-compile-old-load-source-file-function nil)
+
 (provide 'auto-compile)
 ;;; auto-compile.el ends here
