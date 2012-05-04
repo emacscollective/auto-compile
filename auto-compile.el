@@ -283,12 +283,14 @@ or absence of the respective byte code files."
 	    (auto-compile-delete-dest f)
 	  (message "Source file was not found; keeping %s" f)))))))
 
-;; TODO optionally local, report new state
 (defun auto-compile-toggle-mark-failed-modified ()
   "Toggle whether buffers which failed to compile are marked as modified."
   (interactive)
-  (setq auto-compile-mark-failed-modified
-	(not auto-compile-mark-failed-modified)))
+  (message (concat (if (setq auto-compile-mark-failed-modified
+			     (not auto-compile-mark-failed-modified))
+		       "Mark "
+		     "Don't mark ")
+		   "files that failed to compile as modified")))
 
 (defvar auto-compile-pretend-byte-compiled nil
   "Whether to try again to compile this file after a failed attempt.
