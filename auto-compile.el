@@ -84,6 +84,8 @@
 
 ;;; Code:
 
+(require 'bytecomp)
+
 (defgroup auto-compile nil
   "Compile Emacs Lisp source files after the visiting buffers are saved."
   :group 'convenience
