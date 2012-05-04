@@ -167,25 +167,6 @@ get annoying so this variable can be quickly toggled with the command
 `auto-compile-toggle-mark-failed-modified'."
   :type 'boolean)
 
-;; TODO
-(defcustom auto-compile-error-on-warn nil
-  "Whether to treat compile warnings as errors.
-
-If this is t treat any compile warning as an error which may (depending
-on the values of other options) cause the failing source file to be
-visited and/or the visiting buffer marked as modified.
-
-This can quickly become annoying when contributing to libraries where you
-cannot enforce a strict \"no warnings\" rule; so you can limit this
-behavior to files you maintain yourself by setting this to your name
-which has to match the name specified in the author and/or maintainer
-line of the file header."
-  :type `(choice boolean
-		 ,@(when user-full-name
-		     `((const :tag (concat "by " ,user-full-name)
-			      ,user-full-name)))
-		 (string :tag "by Author/Maintainer")))
-
 (defcustom auto-compile-ding t
   "Whether to beep (or flash the screen) when an error occurs.
 
