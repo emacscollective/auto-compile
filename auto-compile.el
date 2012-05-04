@@ -346,7 +346,8 @@ the byte code file exists.")
   (condition-case nil
       (when (file-exists-p dest)
 	(message "Deleting %s..." dest)
-	(delete-file dest))
+	(delete-file dest)
+	(message "Deleting %s...done" dest))
     (file-error
      (auto-compile-ding)
      (message "Deleting %s...failed" dest))))
