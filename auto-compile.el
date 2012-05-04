@@ -92,6 +92,9 @@
   :link '(function-link auto-compile-byte-compile)
   :link '(function-link auto-compile-mode))
 
+
+;;; Auto-Compile Mode.
+
 ;;;###autoload
 (define-minor-mode auto-compile-mode
   "Compile Emacs Lisp source files after the visiting buffers are saved.
@@ -104,7 +107,10 @@ file.  See command `toggle-auto-compile' for a convenient way to do so."
   :group 'auto-compile
   (if auto-compile-mode
       (add-hook  'after-save-hook 'auto-compile-byte-compile nil t)
-    (remove-hook 'after-save-hook 'auto-compile-byte-compile t)))
+    (remove-hook 'after-save-hook 'auto-compile-byte-compile t))
+  (auto-compile-set-use-mode-line
+   'auto-compile-use-mode-line
+   auto-compile-use-mode-line))
 
 ;;;###autoload
 (define-globalized-minor-mode auto-compile-global-mode
@@ -176,6 +182,26 @@ therefor not processing the remaining files would be confusing.  Instead
 it continues and beeps or flashes the screen to get the users attention;
 set this variable to nil to disable even that."
   :type 'boolean)
+
+(defun auto-compile-set-use-mode-line (symbol value)
+  (set-default symbol value)
+  (set-default 'mode-line-format
+	       (delete 'mode-line-auto-compile mode-line-format))
+  (when (and value auto-compile-mode)
+    (push 'mode-line-auto-compile
+	  (cdr (member value mode-line-format)))))
+
+(defcustom auto-compile-use-mode-line 'mode-line-modified
+  "Whether to show information about the byte compiled file in the mode line.
+
+This works by inserting `mode-line-auto-compile' into the default value of
+`mode-line-format' after the construct specified here.  If nil do not insert
+`mode-line-auto-compile' at all."
+  :set 'auto-compile-set-use-mode-line
+  :type '(choice (const :tag "don't insert" nil)
+		 (const :tag "after mode-line-modified" mode-line-modified)
+		 (const :tag "after mode-line-remote" mode-line-remote)
+		 (sexp  :tag "after construct")))
 
 (defvar auto-compile-mode-lighter ""
   "Mode lighter for Auto-Compile Mode.")
@@ -359,5 +385,82 @@ the byte code file exists.")
   (when auto-compile-ding
     (ding)))
 
+
+;;; Mode-Line.
+
+(defvar mode-line-auto-compile
+  '(auto-compile-mode
+    (:eval
+      (let* ((src (buffer-file-name))
+	     (dst (byte-compile-dest-file src)))
+	(list
+	 (cond
+	  ((file-writable-p dst)
+	   (propertize
+	    "-"
+	    'help-echo "Byte-compile destination is writable"
+	    'mouse-face 'mode-line))
+	  (t
+	   (propertize
+	    "%%"
+	    'help-echo "Byte-compile destination is read-only"
+	    'mouse-face 'mode-line)))
+	 (cond
+	  ((and auto-compile-pretend-byte-compiled
+		(not (file-exists-p dst)))
+	   (propertize
+	    "!"
+	    'help-echo "Failed to byte-compile updating\nmouse-1 retry"
+	    'mouse-face 'mode-line-highlight
+	    'local-map (purecopy (make-mode-line-mouse-map
+				  'mouse-1
+				  #'auto-compile-mode-line-byte-compile))))
+	  ((not (file-exists-p dst))
+	   (propertize
+	    "%%"
+	    'help-echo "Byte-compiled file doesn't exist\nmouse-1 create"
+	    'mouse-face 'mode-line-highlight
+	    'local-map (purecopy (make-mode-line-mouse-map
+				  'mouse-1
+				  #'mode-line-toggle-auto-compile))))
+	  ((file-newer-than-file-p src dst)
+	   (propertize
+	    "*"
+	    'help-echo "Byte-compiled file needs updating\nmouse-1 update"
+	    'mouse-face 'mode-line-highlight
+	    'local-map (purecopy (make-mode-line-mouse-map
+				  'mouse-1
+				  #'auto-compile-mode-line-byte-compile))))
+	  (t
+	   (propertize
+	    "-"
+	    'help-echo "Byte-compiled file is up-to-date\nmouse-1 remove"
+	    'mouse-face 'mode-line-highlight
+	    'local-map (purecopy (make-mode-line-mouse-map
+				  'mouse-1
+				  #'mode-line-toggle-auto-compile))))))))))
+
+(put 'mode-line-auto-compile 'risky-local-variable t)
+(make-variable-buffer-local 'mode-line-auto-compile)
+
+(defun mode-line-toggle-auto-compile (event)
+  "Toggle automatic compilation from the mode-line."
+  (interactive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (toggle-auto-compile
+     (buffer-file-name)
+     (if (file-exists-p (byte-compile-dest-file (buffer-file-name)))
+	 'quit
+       'start))
+    (force-mode-line-update)))
+
+(defun auto-compile-mode-line-byte-compile (event)
+  "Recompile from the mode-line."
+  (interactive "e")
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (auto-compile-byte-compile (buffer-file-name) t)
+    (force-mode-line-update)))
 (provide 'auto-compile)
 ;;; auto-compile.el ends here
