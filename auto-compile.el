@@ -375,8 +375,9 @@ the byte code file exists.")
 	(set-buffer-modified-p t)))))
 
 (defun auto-compile-source-file (dest)
-  (let ((standard (concat (file-name-sans-extension dest) ".el"))
-	(suffixes load-file-rep-suffixes)
+  (let ((standard (concat (file-name-sans-extension
+			   (file-name-sans-extension dest)) ".el"))
+	(suffixes (auto-compile-source-suffixes))
 	file)
     (while (and (not file) suffixes)
       (unless (file-exists-p (setq file (concat standard (pop suffixes))))
