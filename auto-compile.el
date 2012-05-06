@@ -280,14 +280,14 @@ or absence of the respective byte code files."
 			(file-name-nondirectory (directory-file-name f)))))
 	  (toggle-auto-compile f action)))
        ((eq action 'start)
-	(when (and (string-match (auto-compile-source-suffixes nil t t) f)
+	(when (and (string-match (auto-compile-source-regexp) f)
 		   (file-exists-p f)
 		   (or auto-compile-always-recompile
 		       (file-newer-than-file-p f (byte-compile-dest-file f)))
 		   (or (not (string-match "^\\.?#" (file-name-nondirectory f)))
 		       (file-exists-p (byte-compile-dest-file f))))
 	  (auto-compile-byte-compile f t)))
-       ((string-match (auto-compile-source-suffixes nil t t) f)
+       ((string-match (auto-compile-source-regexp) f)
 	(if (file-exists-p (auto-compile-source-file f))
 	    (auto-compile-delete-dest f)
 	  (message "Source file was not found; keeping %s" f)))))))
@@ -377,16 +377,15 @@ the byte code file exists.")
 
 ;;; Utilities.
 
-(defun auto-compile-source-suffixes (&optional nosuffix must-suffix regexp)
-  (let ((suffixes
-	 (append (unless nosuffix
-		   (let ((load-suffixes (remove ".elc" load-suffixes)))
-		     (get-load-suffixes)))
-		 (unless must-suffix
-		   load-file-rep-suffixes))))
-    (if regexp
-	(concat (regexp-opt suffixes) "\\'")
-      suffixes)))
+(defun auto-compile-source-suffixes (&optional nosuffix must-suffix)
+  (append (unless nosuffix
+	    (let ((load-suffixes (remove ".elc" load-suffixes)))
+	      (get-load-suffixes)))
+	  (unless must-suffix
+	    load-file-rep-suffixes)))
+
+(defun auto-compile-source-regexp ()
+  (concat (regexp-opt (auto-compile-source-suffixes nil t)) "\\'"))
 
 (defun auto-compile-source-file (dest)
   (let ((standard (concat (file-name-sans-extension
