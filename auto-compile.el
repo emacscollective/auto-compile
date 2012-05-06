@@ -292,6 +292,8 @@ or absence of the respective byte code files."
 	    (auto-compile-delete-dest f)
 	  (message "Source file was not found; keeping %s" f)))))))
 
+(defalias 'auto-compile-toggle 'toggle-auto-compile)
+
 (defun auto-compile-toggle-mark-failed-modified ()
   "Toggle whether buffers which failed to compile are marked as modified."
   (interactive)
