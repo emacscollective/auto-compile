@@ -492,36 +492,54 @@ if it exists but always the source code file."
 ;;; Auto-Compile-On-Load Mode.
 
 (define-minor-mode auto-compile-on-load-mode
-  "Compile Emacs Lisp source files on load if the byte-compiled is outdated."
+  "Before loading a library recompile it if it needs recompilation.
+
+It needs recompilation if it is newer than the byte-compile destination.
+Without this advice the outdated byte compiled file would get loaded."
   :lighter auto-compile-on-load-mode-lighter
   :group 'auto-compile
   :global t
   (if auto-compile-on-load-mode
-      (setq auto-compile-old-load-source-file-function
-	    load-source-file-function
-	    load-source-file-function
-	    'auto-compile-load-source-file)
-    (setq load-source-file-function
-	  auto-compile-old-load-source-file-function)))
-
-(defun auto-compile-load-source-file (fullname file &optional noerror nomessage)
-  (let ((dest (byte-compile-dest-file fullname)))
-    (condition-case nil
-	(when (and (file-exists-p dest)
-		   (file-newer-than-file-p fullname dest))
-	  (message "Replacing out-dated on load %s..." dest)
-	  (byte-compile-file fullname)
-	  (message "Replacing out-dated on load %s...done" dest))
-      (error
-       (message "Replacing out-dated on load %s...failed" dest)
-       (auto-compile-delete-dest dest t))))
-  (funcall auto-compile-old-load-source-file-function
-	   fullname file noerror nomessage))
+      (progn
+	(ad-enable-advice 'load    'before 'auto-compile-on-load)
+	(ad-enable-advice 'require 'before 'auto-compile-on-load)
+	(ad-activate 'load)
+	(ad-activate 'require))
+    (ad-disable-advice 'load    'before 'auto-compile-on-load)
+    (ad-disable-advice 'require 'before 'auto-compile-on-load)))
 
 (defvar auto-compile-on-load-mode-lighter ""
   "Mode lighter for Auto-Compile-On-Load Mode.")
 
-(defvar auto-compile-old-load-source-file-function nil)
+(defadvice load (before auto-compile-on-load disable)
+  ;; (file &optional noerror nomessage nosuffix must-suffix)
+  "Before loading the library recompile it if it needs recompilation.
+It needs recompilation if it is newer than the byte-compile destination.
+Without this advice the outdated byte compiled file would get loaded."
+  (auto-compile-on-load file nosuffix))
+
+(defadvice require (before auto-compile-on-load disable)
+  ;; (feature &optional FILENAME NOERROR)
+  "Before loading the library recompile it if it needs recompilation.
+It needs recompilation if it is newer than the byte-compile destination.
+Without this advice the outdated byte compiled file would get loaded."
+  (auto-compile-on-load (or filename (symbol-name feature))))
+
+(defun auto-compile-on-load (file &optional nosuffix)
+  (condition-case nil
+      (let (byte-compile-verbose dest)
+	(when (and (stringp file)
+		   (not (equal file ""))
+		   (setq file (auto-compile-locate-library file nosuffix))
+		   (setq dest (byte-compile-dest-file file))
+		   (file-exists-p dest)
+		   (file-newer-than-file-p file dest))
+	    (message "Recompiling %s..." file)
+	    (byte-compile-file file)
+	    (message "Recompiling %s...done" file)))
+    (error
+     (message "Recompiling %s...failed" file)
+     (auto-compile-delete-dest dest t))))
 
 (provide 'auto-compile)
 ;;; auto-compile.el ends here
