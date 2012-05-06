@@ -280,14 +280,14 @@ or absence of the respective byte code files."
 			(file-name-nondirectory (directory-file-name f)))))
 	  (toggle-auto-compile f action)))
        ((eq action 'start)
-	(when (and (string-match "\\.el\\(\\.gz\\)?$" f) ; FIXME
+	(when (and (string-match (auto-compile-source-suffixes nil t t) f)
 		   (file-exists-p f)
 		   (or auto-compile-always-recompile
 		       (file-newer-than-file-p f (byte-compile-dest-file f)))
 		   (or (not (string-match "^\\.?#" (file-name-nondirectory f)))
 		       (file-exists-p (byte-compile-dest-file f))))
 	  (auto-compile-byte-compile f t)))
-       ((string-match "\\.elc\\(\\.gz\\)?$" f)
+       ((string-match (auto-compile-source-suffixes nil t t) f)
 	(if (file-exists-p (auto-compile-source-file f))
 	    (auto-compile-delete-dest f)
 	  (message "Source file was not found; keeping %s" f)))))))
@@ -374,6 +374,20 @@ the byte code file exists.")
       (when auto-compile-mark-failed-modified
 	(set-buffer-modified-p t)))))
 
+
+;;; Utilities.
+
+(defun auto-compile-source-suffixes (&optional nosuffix must-suffix regexp)
+  (let ((suffixes
+	 (append (unless nosuffix
+		   (let ((load-suffixes (remove ".elc" load-suffixes)))
+		     (get-load-suffixes)))
+		 (unless must-suffix
+		   load-file-rep-suffixes))))
+    (if regexp
+	(concat (regexp-opt suffixes) "\\'")
+      suffixes)))
+
 (defun auto-compile-source-file (dest)
   (let ((standard (concat (file-name-sans-extension
 			   (file-name-sans-extension dest)) ".el"))
@@ -383,6 +397,14 @@ the byte code file exists.")
       (unless (file-exists-p (setq file (concat standard (pop suffixes))))
 	(setq file nil)))
     (or file standard)))
+
+(defun auto-compile-locate-library (library &optional nosuffix)
+  "Show the precise file name of Emacs library LIBRARY.
+Unlike `locate-library' don't return the byte-compile destination
+if it exists but always the source code file."
+  (locate-file (substitute-in-file-name library)
+	       load-path
+	       (auto-compile-source-suffixes nosuffix)))
 
 (defun auto-compile-ding ()
   (when auto-compile-ding
