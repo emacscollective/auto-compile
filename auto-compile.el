@@ -151,15 +151,6 @@ explicitly selected are always processed."
 		 (string :tag "Matching subdirectories")
 		 (const  :tag "Don't" nil)))
 
-(defcustom auto-compile-check-parens t
-  "Whether to check for unbalanced parentheses before compiling.
-
-This only has as an effect on files which are currently being visited in
-a buffer other files are compiled without this prior check.  If unbalanced
-parentheses are found no attempt is made to compile the file as that would
-obviously fail also."
-  :type 'boolean)
-
 (defcustom auto-compile-visit-failed t
   "Whether to visit source files which failed to compile.
 
@@ -186,6 +177,15 @@ unmatched parens, or failure to remove file) because aborting and
 therefor not processing the remaining files would be confusing.  Instead
 it continues and beeps or flashes the screen to get the users attention;
 set this variable to nil to disable even that."
+  :type 'boolean)
+
+(defcustom auto-compile-check-parens t
+  "Whether to check for unbalanced parentheses before compiling.
+
+This only has as an effect on files which are currently being visited in
+a buffer other files are compiled without this prior check.  If unbalanced
+parentheses are found no attempt is made to compile the file as that would
+obviously fail also."
   :type 'boolean)
 
 (defun auto-compile-set-use-mode-line (symbol value)
