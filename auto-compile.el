@@ -122,6 +122,9 @@ file.  See command `toggle-auto-compile' for a convenient way to do so."
   (when (eq major-mode 'emacs-lisp-mode)
     (auto-compile-mode 1)))
 
+(defvar auto-compile-mode-lighter ""
+  "Mode lighter for Auto-Compile Mode.")
+
 (defcustom auto-compile-verbose nil
   "Whether to print messages describing progress of byte-compiler."
   :group 'auto-compile
@@ -204,9 +207,6 @@ This works by inserting `mode-line-auto-compile' into the default value of
 		 (const :tag "after mode-line-modified" mode-line-modified)
 		 (const :tag "after mode-line-remote" mode-line-remote)
 		 (sexp  :tag "after construct")))
-
-(defvar auto-compile-mode-lighter ""
-  "Mode lighter for Auto-Compile Mode.")
 
 ;;;###autoload
 (defun toggle-auto-compile (file action)
