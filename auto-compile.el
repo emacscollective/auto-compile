@@ -29,7 +29,8 @@
 ;; automatically compiles Emacs Lisp code when the visiting buffers are
 ;; saved to their source files, provided that the respective byte code
 ;; files already exists.  If the byte code file does not already exist
-;; nothing is done.
+;; nothing is done.  Also provided is `auto-compile-on-load-mode' which
+;; is described toward the end of this commentary.
 
 ;; To start or stop compiling a source file or multiple files at once use
 ;; the command `toggle-auto-compile' which toggles automatic compilation
@@ -72,6 +73,20 @@
 ;; don't have to turn of this mode anymore.  In other words use the
 ;; command `toggle-auto-compile' instead.
 
+;; Even when using `auto-compile-mode' it can sometimes happen that the
+;; source file is newer than the byte compile destination.  This can for
+;; example happen when performing version control operations. To ensure
+;; that byte code files are always up-to-date when being loaded using
+;; `require' and `load' enable `auto-compile-on-load-mode' which advises
+;; this functions to recompile the source files when needed.  Enable this
+;; mode before any potentially byte compiled files are loaded by beginning
+;; your init file with:
+;;
+;;     ;; -*- no-byte-compile: t -*-
+;;     (add-to-list 'load-path "/path/to/auto-compile")
+;;     (auto-compile-global-mode 1)
+;;     (auto-compile-on-load-mode 1)
+
 ;; Also note that just because no warnings and/or errors are reported when
 ;; Auto-Compile mode compiles a source file this does not necessarily mean
 ;; that users of your libraries won't see any.  A likely cause for this
@@ -104,7 +119,10 @@
 After a buffer containing Emacs Lisp code is saved to its source file
 update the respective byte code file.  If the latter does not exist do
 nothing.  Therefor to disable automatic compilation remove the byte code
-file.  See command `toggle-auto-compile' for a convenient way to do so."
+file.  See command `toggle-auto-compile' for a convenient way to do so.
+
+This mode should be enabled globally, using it's globalized variant
+`auto-compile-global-mode'."
   :lighter auto-compile-mode-lighter
   :group 'auto-compile
   (if auto-compile-mode
@@ -306,11 +324,11 @@ or absence of the respective byte code files."
 (defvar auto-compile-pretend-byte-compiled nil
   "Whether to try again to compile this file after a failed attempt.
 
-Command `auto-compile-byte-compile' sets this buffer local variable to t
-after failing to compile a source file being visited in a buffer (or when
-variable `auto-compile-visit-failed' is non-nil) causing it to try again
-when being called again.  Command `toggle-auto-compile' will also pretend
-the byte code file exists.")
+Command `auto-compile-byte-compile' sets this buffer local variable to
+t after failing to compile a source file being visited in a buffer (or
+when variable `auto-compile-visit-failed' is non-nil for all files being
+compiled) causing it to try again when being called again. Command
+`toggle-auto-compile' will also pretend the byte code file exists.")
 (make-variable-buffer-local 'auto-compile-pretend-byte-compiled)
 
 (defun auto-compile-byte-compile (&optional file start)
