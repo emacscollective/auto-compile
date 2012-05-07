@@ -84,8 +84,9 @@
 ;;
 ;;     ;; -*- no-byte-compile: t -*-
 ;;     (add-to-list 'load-path "/path/to/auto-compile")
-;;     (auto-compile-global-mode 1)
+;;     (require 'auto-compile)
 ;;     (auto-compile-on-load-mode 1)
+;;     (auto-compile-global-mode 1)
 
 ;; Also note that just because no warnings and/or errors are reported when
 ;; Auto-Compile mode compiles a source file this does not necessarily mean
