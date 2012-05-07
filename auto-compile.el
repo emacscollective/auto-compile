@@ -206,6 +206,20 @@ parentheses are found no attempt is made to compile the file as that would
 obviously fail also."
   :type 'boolean)
 
+(defcustom auto-compile-update-autoloads nil
+  "Whether to update autoloads after compiling.
+
+If no autoload file as specified by `auto-compile-autoload-filename'
+can be found quietly skip this step."
+  :type 'boolean)
+
+(defcustom auto-compile-autoload-filename '("loaddefs.el" ".loaddefs.el")
+  "The name of the files containing autoloads.
+
+This can also be a list of such filenames in which case all names are
+tried when looking for such a file; and the first is used when none can
+be found and one is newly created.")
+
 (defun auto-compile-set-use-mode-line (symbol value)
   (set-default symbol value)
   (set-default 'mode-line-format
@@ -331,9 +345,10 @@ compiled) causing it to try again when being called again. Command
 `toggle-auto-compile' will also pretend the byte code file exists.")
 (make-variable-buffer-local 'auto-compile-pretend-byte-compiled)
 
-(defun auto-compile-byte-compile (&optional file start)
+(defun auto-compile-byte-compile (&optional file start keep-loaddefs)
   "Perform byte compilation for Auto-Compile mode."
-  (let (dest buf)
+  (let ((default-directory default-directory)
+	dest buf success)
     (when (and file
 	       (setq buf (get-file-buffer file))
 	       (buffer-modified-p buf)
@@ -342,6 +357,7 @@ compiled) causing it to try again when being called again. Command
     (unless file
       (setq file (buffer-file-name)
 	    buf  (get-file-buffer file)))
+    (setq default-directory (file-name-directory file))
     (catch 'auto-compile
       (when (and auto-compile-check-parens buf)
 	(condition-case check-parens
@@ -361,10 +377,19 @@ compiled) causing it to try again when being called again. Command
 	      (byte-compile-file file)
 	      (when buf
 		(with-current-buffer buf
-		  (kill-local-variable auto-compile-pretend-byte-compiled))))
+		  (kill-local-variable auto-compile-pretend-byte-compiled)))
+	      (setq success t))
 	  (file-error
 	   (message "Byte-compiling %s failed" file)
-	   (auto-compile-handle-compile-error file buf)))))))
+	   (auto-compile-handle-compile-error file buf))))
+      (when (and (not keep-loaddefs)
+		 auto-compile-update-autoloads)
+	(condition-case update-loaddefs
+	    (auto-compile-update-autoloads nil file)
+	  (error
+	   (message "Generating autoloads for %s failed" file)
+	   (auto-compile-handle-autoloads-error (auto-compile-get-autoload-file)))))
+      success)))
 
 (defun auto-compile-delete-dest (dest &optional failurep)
   (unless failurep
@@ -393,6 +418,10 @@ compiled) causing it to try again when being called again. Command
       (setq auto-compile-pretend-byte-compiled t)
       (when auto-compile-mark-failed-modified
 	(set-buffer-modified-p t)))))
+
+(defun auto-compile-handle-autoloads-error (dest)
+  (auto-compile-ding)
+  (auto-compile-remove-autoloads dest nil))
 
 
 ;;; Utilities.
@@ -428,6 +457,66 @@ if it exists but always the source code file."
 (defun auto-compile-ding ()
   (when auto-compile-ding
     (ding)))
+
+
+;;; Autoloads.
+
+(defun auto-compile-get-autoload-file (&optional directory)
+  (let ((candidates (if (listp auto-compile-autoload-filename)
+			auto-compile-autoload-filename
+		      (list auto-compile-autoload-filename)))
+	found)
+    (while candidates
+      (when (setq found (locate-dominating-file directory dest))
+	(setq candidates nil)))
+    found))
+
+(defmacro auto-compile-with-autoloads (dest &rest body)
+  (declare (indent 1))
+  `(let ((generated-autoload-file dest)
+	 ;; Generating autoloads runs theses hooks; disable them.
+	 fundamental-mode-hook
+	 prog-mode-hook
+	 emacs-lisp-mode-hook)
+     (prog2
+	 (unless (file-exists-p generated-autoload-file)
+	   (write-region
+	    (replace-regexp-in-string
+	     ";; no-byte-compile: t\n" ""
+	     (autoload-rubric generated-autoload-file))
+	    nil generated-autoload-file))
+	 (progn ,@body)
+       (let (buf)
+	 (while (setq buf (find-buffer-visiting generated-autoload-file))
+	   (with-current-buffer buf
+	     (save-buffer)
+	     (kill-buffer)))))))
+
+(defun auto-compile-load-autoloads (&optional dest)
+  (if (file-exists-p (or dest (setq dest (auto-compile-get-autoload-file))))
+      (load dest)
+    (message "Loaddefs file '%s' is missing" dest)))
+
+(defun auto-compile-update-autoloads (dest path)
+  (when (or dest (setq dest (auto-compile-get-autoload-file)))
+    (auto-compile-with-autoloads dest
+      (update-directory-autoloads path)
+      (byte-compile-file dest t))))
+
+(defun auto-compile-remove-autoloads (dest path)
+  (when (or dest (setq dest (auto-compile-get-autoload-file)))
+    (auto-compile-with-autoloads dest
+      ;; `autoload-find-destination' clears out autoloads associated
+      ;; with a file if they are not found in the current buffer
+      ;; anymore (which is the case here because it is empty).
+      (with-temp-buffer
+	(let ((autoload-modified-buffers (list (current-buffer))))
+	  (dolist (d path)
+	    (when (and (file-directory-p d)
+		       (file-exists-p d))
+	      (dolist (f (directory-files d t (auto-compile-source-regexp)))
+		(autoload-find-destination f (autoload-file-load-name f)))))))
+      (byte-compile-file dest t))))
 
 
 ;;; Mode-Line.
