@@ -1,11 +1,11 @@
-;;; auto-compile.el --- compile Emacs Lisp files after visiting buffers are saved
+;;; auto-compile.el --- automatically compile Emacs Lisp libraries
 
 ;; Copyright (C) 2008-2012  Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Version: 0.7.0-pre
-;; Homepage: https://github.com/tarsius/auto-compile
+;; Version: 1.0.0
+;; Homepage: http://tarsius.github.com/auto-compile
 ;; Keywords: compile, convenience, lisp
 
 ;; This file is not part of GNU Emacs.
@@ -24,6 +24,9 @@
 ;; see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;;    This is a pre-release.  Version numbers are inspired by how
+;;    Emacs is versioned - 1.1.0 will be the first stable version.
 
 ;; This package provides the minor mode `auto-compile-global-mode' which
 ;; automatically compiles Emacs Lisp code when the visiting buffers are
