@@ -102,6 +102,10 @@
 
 (require 'bytecomp)
 
+(declare-function autoload-rubric "autoload")
+(declare-function autoload-find-destination "autoload")
+(declare-function autoload-file-load-name "autoload")
+
 (defgroup auto-compile nil
   "Compile Emacs Lisp source files after the visiting buffers are saved."
   :group 'convenience
@@ -479,6 +483,7 @@ if it exists but always the source code file."
 	 fundamental-mode-hook
 	 prog-mode-hook
 	 emacs-lisp-mode-hook)
+     (require 'autoload)
      (prog2
 	 (unless (file-exists-p generated-autoload-file)
 	   (write-region
@@ -505,6 +510,7 @@ if it exists but always the source code file."
       (byte-compile-file dest t))))
 
 (defun auto-compile-remove-autoloads (dest path)
+  (require 'autoload)
   (when (or dest (setq dest (auto-compile-get-autoload-file)))
     (auto-compile-with-autoloads dest
       ;; `autoload-find-destination' clears out autoloads associated
