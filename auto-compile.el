@@ -4,7 +4,7 @@
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Version: 1.0.0
+;; Version: 1.0.1
 ;; Homepage: http://tarsius.github.com/auto-compile
 ;; Keywords: compile, convenience, lisp
 
@@ -25,8 +25,8 @@
 
 ;;; Commentary:
 
-;;    This is a pre-release.  Version numbers are inspired by how
-;;    Emacs is versioned - 1.1.0 will be the first stable version.
+;;  This is a pre-release.  Version numbers are inspired by how
+;;  Emacs is versioned - 1.1.0 will be the first stable version.
 
 ;; This package provides the minor mode `auto-compile-global-mode' which
 ;; automatically compiles Emacs Lisp code when the visiting buffers are
@@ -319,18 +319,16 @@ or absence of the respective byte code files."
 			auto-compile-recursive
 			(file-name-nondirectory (directory-file-name f)))))
 	  (toggle-auto-compile f action)))
-       ((eq action 'start)
-	(when (and (string-match (auto-compile-source-regexp) f)
-		   (file-exists-p f)
-		   (or auto-compile-always-recompile
-		       (file-newer-than-file-p f (byte-compile-dest-file f)))
-		   (or (not (string-match "^\\.?#" (file-name-nondirectory f)))
-		       (file-exists-p (byte-compile-dest-file f))))
-	  (auto-compile-byte-compile f t)))
        ((string-match (auto-compile-source-regexp) f)
-	(if (file-exists-p (auto-compile-source-file f))
-	    (auto-compile-delete-dest f)
-	  (message "Source file was not found; keeping %s" f)))))))
+	(let ((dest (byte-compile-dest-file f)))
+	  (if (eq action 'start)
+	      (and (file-exists-p f)
+		   (or auto-compile-always-recompile
+		       (file-newer-than-file-p f dest))
+		   (or (not (string-match "^\\.?#" (file-name-nondirectory f)))
+		       (file-exists-p dest))
+		   (auto-compile-byte-compile f t))
+	    (auto-compile-delete-dest dest))))))))
 
 (defalias 'auto-compile-toggle 'toggle-auto-compile)
 
