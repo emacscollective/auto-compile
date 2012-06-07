@@ -642,8 +642,8 @@ Without this advice the outdated byte compiled file would get loaded."
   (auto-compile-on-load (or filename (symbol-name feature))))
 
 (defun auto-compile-on-load (file &optional nosuffix)
-  (condition-case nil
-      (let (byte-compile-verbose dest)
+  (let (byte-compile-verbose dest)
+    (condition-case nil
 	(when (and (stringp file)
 		   (not (equal file ""))
 		   (setq file (auto-compile-locate-library file nosuffix))
@@ -652,10 +652,11 @@ Without this advice the outdated byte compiled file would get loaded."
 		   (file-newer-than-file-p file dest))
 	    (message "Recompiling %s..." file)
 	    (byte-compile-file file)
-	    (message "Recompiling %s...done" file)))
-    (error
-     (message "Recompiling %s...failed" file)
-     (auto-compile-delete-dest dest t))))
+	    (message "Recompiling %s...done" file))
+      (error
+       (message "Recompiling %s...failed" file)
+       (when dest
+	 (auto-compile-delete-dest dest t))))))
 
 (provide 'auto-compile)
 ;;; auto-compile.el ends here
