@@ -4,7 +4,8 @@
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Version: 1.0.1
+;; Version: 1.0.2
+;; Status: beta
 ;; Homepage: http://tarsius.github.com/auto-compile
 ;; Keywords: compile, convenience, lisp
 
@@ -25,8 +26,8 @@
 
 ;;; Commentary:
 
-;;  This is a pre-release.  Version numbers are inspired by how
-;;  Emacs is versioned - 1.1.0 will be the first stable version.
+;; This is a beta release.  Version numbers are inspired by how
+;; Emacs is versioned - 1.1.0 will be the first stable version.
 
 ;; This package provides the minor mode `auto-compile-global-mode' which
 ;; automatically compiles Emacs Lisp code when the visiting buffers are
@@ -104,6 +105,7 @@
 ;;; Code:
 
 (require 'bytecomp)
+(require 'packed)
 
 (declare-function autoload-rubric "autoload")
 (declare-function autoload-find-destination "autoload")
@@ -217,16 +219,9 @@ obviously fail also."
 (defcustom auto-compile-update-autoloads nil
   "Whether to update autoloads after compiling.
 
-If no autoload file as specified by `auto-compile-autoload-filename'
-can be found quietly skip this step."
+If no autoload file as specified by `packed-loaddefs-filename' can be
+found quietly skip this step."
   :type 'boolean)
-
-(defcustom auto-compile-autoload-filename '("loaddefs.el" ".loaddefs.el")
-  "The name of the files containing autoloads.
-
-This can also be a list of such filenames in which case all names are
-tried when looking for such a file; and the first is used when none can
-be found and one is newly created.")
 
 (defun auto-compile-set-use-mode-line (symbol value)
   (set-default symbol value)
@@ -319,7 +314,7 @@ or absence of the respective byte code files."
 			auto-compile-recursive
 			(file-name-nondirectory (directory-file-name f)))))
 	  (toggle-auto-compile f action)))
-       ((string-match (auto-compile-source-regexp) f)
+       ((packed-library-p f)
 	(let ((dest (byte-compile-dest-file f)))
 	  (if (eq action 'start)
 	      (and (file-exists-p f)
@@ -391,15 +386,15 @@ compiled) causing it to try again when being called again. Command
       (when (and (not keep-loaddefs)
 		 auto-compile-update-autoloads)
 	(condition-case update-loaddefs
-	    (auto-compile-update-autoloads nil file)
+	    (packed-update-autoloads nil file)
 	  (error
 	   (message "Generating autoloads for %s failed" file)
-	   (auto-compile-handle-autoloads-error (auto-compile-get-autoload-file)))))
+	   (auto-compile-handle-autoloads-error (packed-loaddefs-file)))))
       success)))
 
 (defun auto-compile-delete-dest (dest &optional failurep)
   (unless failurep
-    (let ((buf (get-file-buffer (auto-compile-source-file dest))))
+    (let ((buf (get-file-buffer (packed-source-file dest))))
       (when buf
 	(with-current-buffer buf
 	  (kill-local-variable 'auto-compile-pretend-byte-compiled)))))
@@ -427,104 +422,11 @@ compiled) causing it to try again when being called again. Command
 
 (defun auto-compile-handle-autoloads-error (dest)
   (auto-compile-ding)
-  (auto-compile-remove-autoloads dest nil))
-
-
-;;; Utilities.
-
-(defun auto-compile-source-suffixes (&optional nosuffix must-suffix)
-  (append (unless nosuffix
-	    (let ((load-suffixes (remove ".elc" load-suffixes)))
-	      (get-load-suffixes)))
-	  (unless must-suffix
-	    load-file-rep-suffixes)))
-
-(defun auto-compile-source-regexp ()
-  (concat (regexp-opt (auto-compile-source-suffixes nil t)) "\\'"))
-
-(defun auto-compile-source-file (dest)
-  (let ((standard (concat (file-name-sans-extension
-			   (file-name-sans-extension dest)) ".el"))
-	(suffixes (auto-compile-source-suffixes))
-	file)
-    (while (and (not file) suffixes)
-      (unless (file-exists-p (setq file (concat standard (pop suffixes))))
-	(setq file nil)))
-    (or file standard)))
-
-(defun auto-compile-locate-library (library &optional nosuffix)
-  "Show the precise file name of Emacs library LIBRARY.
-Unlike `locate-library' don't return the byte-compile destination
-if it exists but always the source code file."
-  (locate-file (substitute-in-file-name library)
-	       load-path
-	       (auto-compile-source-suffixes nosuffix)))
+  (packed-remove-autoloads dest nil))
 
 (defun auto-compile-ding ()
   (when auto-compile-ding
     (ding)))
-
-
-;;; Autoloads.
-
-(defun auto-compile-get-autoload-file (&optional directory)
-  (let ((candidates (if (listp auto-compile-autoload-filename)
-			auto-compile-autoload-filename
-		      (list auto-compile-autoload-filename)))
-	found)
-    (while candidates
-      (when (setq found (locate-dominating-file directory dest))
-	(setq candidates nil)))
-    found))
-
-(defmacro auto-compile-with-autoloads (dest &rest body)
-  (declare (indent 1))
-  `(let ((generated-autoload-file dest)
-	 ;; Generating autoloads runs theses hooks; disable them.
-	 fundamental-mode-hook
-	 prog-mode-hook
-	 emacs-lisp-mode-hook)
-     (require 'autoload)
-     (prog2
-	 (unless (file-exists-p generated-autoload-file)
-	   (write-region
-	    (replace-regexp-in-string
-	     ";; no-byte-compile: t\n" ""
-	     (autoload-rubric generated-autoload-file))
-	    nil generated-autoload-file))
-	 (progn ,@body)
-       (let (buf)
-	 (while (setq buf (find-buffer-visiting generated-autoload-file))
-	   (with-current-buffer buf
-	     (save-buffer)
-	     (kill-buffer)))))))
-
-(defun auto-compile-load-autoloads (&optional dest)
-  (if (file-exists-p (or dest (setq dest (auto-compile-get-autoload-file))))
-      (load dest)
-    (message "Loaddefs file '%s' is missing" dest)))
-
-(defun auto-compile-update-autoloads (dest path)
-  (when (or dest (setq dest (auto-compile-get-autoload-file)))
-    (auto-compile-with-autoloads dest
-      (update-directory-autoloads path)
-      (byte-compile-file dest t))))
-
-(defun auto-compile-remove-autoloads (dest path)
-  (require 'autoload)
-  (when (or dest (setq dest (auto-compile-get-autoload-file)))
-    (auto-compile-with-autoloads dest
-      ;; `autoload-find-destination' clears out autoloads associated
-      ;; with a file if they are not found in the current buffer
-      ;; anymore (which is the case here because it is empty).
-      (with-temp-buffer
-	(let ((autoload-modified-buffers (list (current-buffer))))
-	  (dolist (d path)
-	    (when (and (file-directory-p d)
-		       (file-exists-p d))
-	      (dolist (f (directory-files d t (auto-compile-source-regexp)))
-		(autoload-find-destination f (autoload-file-load-name f)))))))
-      (byte-compile-file dest t))))
 
 
 ;;; Mode-Line.
@@ -646,7 +548,7 @@ Without this advice the outdated byte compiled file would get loaded."
     (condition-case nil
 	(when (and (stringp file)
 		   (not (equal file ""))
-		   (setq file (auto-compile-locate-library file nosuffix))
+		   (setq file (packed-locate-library file nosuffix))
 		   (setq dest (byte-compile-dest-file file))
 		   (file-exists-p dest)
 		   (file-newer-than-file-p file dest))
