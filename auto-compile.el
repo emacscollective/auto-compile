@@ -4,7 +4,7 @@
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Version: 1.0.2
+;; Version: 1.0.3
 ;; Status: beta
 ;; Homepage: http://tarsius.github.com/auto-compile
 ;; Keywords: compile, convenience, lisp
@@ -175,9 +175,9 @@ Must be a boolean or a regular expression in which case only directories
 whose file-name match are recursed into.  The files in a directory
 explicitly selected are always processed."
   :type '(choice (const  :tag "All subdirectories" t)
-		 (const  :tag "Non-hidden subdirectories" "^[^.]")
-		 (string :tag "Matching subdirectories")
-		 (const  :tag "Don't" nil)))
+                 (const  :tag "Non-hidden subdirectories" "^[^.]")
+                 (string :tag "Matching subdirectories")
+                 (const  :tag "Don't" nil)))
 
 (defcustom auto-compile-visit-failed t
   "Whether to visit source files which failed to compile.
@@ -226,10 +226,10 @@ found quietly skip this step."
 (defun auto-compile-set-use-mode-line (symbol value)
   (set-default symbol value)
   (set-default 'mode-line-format
-	       (delete 'mode-line-auto-compile mode-line-format))
+               (delete 'mode-line-auto-compile mode-line-format))
   (when (and value auto-compile-mode)
     (push 'mode-line-auto-compile
-	  (cdr (member value mode-line-format)))))
+          (cdr (member value mode-line-format)))))
 
 (defcustom auto-compile-use-mode-line 'mode-line-modified
   "Whether to show information about the byte compiled file in the mode line.
@@ -239,9 +239,9 @@ This works by inserting `mode-line-auto-compile' into the default value of
 `mode-line-auto-compile' at all."
   :set 'auto-compile-set-use-mode-line
   :type '(choice (const :tag "don't insert" nil)
-		 (const :tag "after mode-line-modified" mode-line-modified)
-		 (const :tag "after mode-line-remote" mode-line-remote)
-		 (sexp  :tag "after construct")))
+                 (const :tag "after mode-line-modified" mode-line-modified)
+                 (const :tag "after mode-line-remote" mode-line-remote)
+                 (sexp  :tag "after construct")))
 
 ;;;###autoload
 (defun toggle-auto-compile (file action)
@@ -270,60 +270,60 @@ only once and then applied to all source files regardless of the presence
 or absence of the respective byte code files."
   (interactive
    (let* ((buf  (current-buffer))
-	  (file (when (eq major-mode 'emacs-lisp-mode)
-		  (buffer-file-name)))
-	  (action
-	   (cond
-	    (current-prefix-arg
-	     (if (> (prefix-numeric-value current-prefix-arg) 0)
-		 'start
-	       'quit))
-	    (file
-	     (if (or (file-exists-p (byte-compile-dest-file file))
-		     (and (eq major-mode 'emacs-lisp-mode)
-			  (file-exists-p (byte-compile-dest-file
-					  (buffer-file-name buf)))))
-		 'quit
-	       'start))
-	    (t
-	     (case (read-char-choice
-		    "Toggle automatic compilation (s=tart, q=uit, C-g)? "
-		    '(?s ?q))
-	       (?s 'start)
-	       (?q 'quit))))))
+          (file (when (eq major-mode 'emacs-lisp-mode)
+                  (buffer-file-name)))
+          (action
+           (cond
+            (current-prefix-arg
+             (if (> (prefix-numeric-value current-prefix-arg) 0)
+                 'start
+               'quit))
+            (file
+             (if (or (file-exists-p (byte-compile-dest-file file))
+                     (and (eq major-mode 'emacs-lisp-mode)
+                          (file-exists-p (byte-compile-dest-file
+                                          (buffer-file-name buf)))))
+                 'quit
+               'start))
+            (t
+             (case (read-char-choice
+                    "Toggle automatic compilation (s=tart, q=uit, C-g)? "
+                    '(?s ?q))
+               (?s 'start)
+               (?q 'quit))))))
      (list (read-file-name (concat (capitalize (symbol-name action))
-				   " auto-compiling: ")
-			   (when file (file-name-directory file))
-			   nil t
-			   (when file (file-name-nondirectory file)))
-	   action)))
+                                   " auto-compiling: ")
+                           (when file (file-name-directory file))
+                           nil t
+                           (when file (file-name-nondirectory file)))
+           action)))
   (if (file-regular-p file)
       (case action
-	(start (auto-compile-byte-compile file t))
-	(quit  (auto-compile-delete-dest (byte-compile-dest-file file))))
+        (start (auto-compile-byte-compile file t))
+        (quit  (auto-compile-delete-dest (byte-compile-dest-file file))))
     (when (called-interactively-p 'any)
       (let ((log (get-buffer byte-compile-log-buffer)))
-	(when log
-	  (kill-buffer log))))
+        (when log
+          (kill-buffer log))))
     (dolist (f (directory-files file t))
       (cond
        ((file-directory-p f)
-	(when (and auto-compile-recursive
-		   (or (not (stringp auto-compile-recursive))
-		       (string-match
-			auto-compile-recursive
-			(file-name-nondirectory (directory-file-name f)))))
-	  (toggle-auto-compile f action)))
+        (when (and auto-compile-recursive
+                   (or (not (stringp auto-compile-recursive))
+                       (string-match
+                        auto-compile-recursive
+                        (file-name-nondirectory (directory-file-name f)))))
+          (toggle-auto-compile f action)))
        ((packed-library-p f)
-	(let ((dest (byte-compile-dest-file f)))
-	  (if (eq action 'start)
-	      (and (file-exists-p f)
-		   (or auto-compile-always-recompile
-		       (file-newer-than-file-p f dest))
-		   (or (not (string-match "^\\.?#" (file-name-nondirectory f)))
-		       (file-exists-p dest))
-		   (auto-compile-byte-compile f t))
-	    (auto-compile-delete-dest dest))))))))
+        (let ((dest (byte-compile-dest-file f)))
+          (if (eq action 'start)
+              (and (file-exists-p f)
+                   (or auto-compile-always-recompile
+                       (file-newer-than-file-p f dest))
+                   (or (not (string-match "^\\.?#" (file-name-nondirectory f)))
+                       (file-exists-p dest))
+                   (auto-compile-byte-compile f t))
+            (auto-compile-delete-dest dest))))))))
 
 (defalias 'auto-compile-toggle 'toggle-auto-compile)
 
@@ -331,10 +331,10 @@ or absence of the respective byte code files."
   "Toggle whether buffers which failed to compile are marked as modified."
   (interactive)
   (message (concat (if (setq auto-compile-mark-failed-modified
-			     (not auto-compile-mark-failed-modified))
-		       "Mark "
-		     "Don't mark ")
-		   "files that failed to compile as modified")))
+                             (not auto-compile-mark-failed-modified))
+                       "Mark "
+                     "Don't mark ")
+                   "files that failed to compile as modified")))
 
 (defvar auto-compile-pretend-byte-compiled nil
   "Whether to try again to compile this file after a failed attempt.
@@ -349,60 +349,60 @@ compiled) causing it to try again when being called again. Command
 (defun auto-compile-byte-compile (&optional file start keep-loaddefs)
   "Perform byte compilation for Auto-Compile mode."
   (let ((default-directory default-directory)
-	dest buf success)
+        dest buf success)
     (when (and file
-	       (setq buf (get-file-buffer file))
-	       (buffer-modified-p buf)
-	       (y-or-n-p (format "Save buffer %s first? " (buffer-name buf))))
+               (setq buf (get-file-buffer file))
+               (buffer-modified-p buf)
+               (y-or-n-p (format "Save buffer %s first? " (buffer-name buf))))
       (with-current-buffer buf (save-buffer)))
     (unless file
       (setq file (buffer-file-name)
-	    buf  (get-file-buffer file)))
+            buf  (get-file-buffer file)))
     (setq default-directory (file-name-directory file))
     (catch 'auto-compile
       (when (and auto-compile-check-parens buf)
-	(condition-case check-parens
-	    (save-restriction
-	      (widen)
-	      (check-parens))
-	  (error
-	   (auto-compile-handle-compile-error file buf)
-	   (throw 'auto-compile nil))))
+        (condition-case check-parens
+            (save-restriction
+              (widen)
+              (check-parens))
+          (error
+           (auto-compile-handle-compile-error file buf)
+           (throw 'auto-compile nil))))
       (when (or start
-		(file-exists-p (byte-compile-dest-file file))
-		(when buf
-		  (with-current-buffer buf
-		    auto-compile-pretend-byte-compiled)))
-	(condition-case byte-compile
-	    (let ((byte-compile-verbose auto-compile-verbose))
-	      (byte-compile-file file)
-	      (when buf
-		(with-current-buffer buf
-		  (kill-local-variable auto-compile-pretend-byte-compiled)))
-	      (setq success t))
-	  (file-error
-	   (message "Byte-compiling %s failed" file)
-	   (auto-compile-handle-compile-error file buf))))
+                (file-exists-p (byte-compile-dest-file file))
+                (when buf
+                  (with-current-buffer buf
+                    auto-compile-pretend-byte-compiled)))
+        (condition-case byte-compile
+            (let ((byte-compile-verbose auto-compile-verbose))
+              (byte-compile-file file)
+              (when buf
+                (with-current-buffer buf
+                  (kill-local-variable auto-compile-pretend-byte-compiled)))
+              (setq success t))
+          (file-error
+           (message "Byte-compiling %s failed" file)
+           (auto-compile-handle-compile-error file buf))))
       (when (and (not keep-loaddefs)
-		 auto-compile-update-autoloads)
-	(condition-case update-loaddefs
-	    (packed-update-autoloads nil file)
-	  (error
-	   (message "Generating autoloads for %s failed" file)
-	   (auto-compile-handle-autoloads-error (packed-loaddefs-file)))))
+                 auto-compile-update-autoloads)
+        (condition-case update-loaddefs
+            (packed-update-autoloads nil file)
+          (error
+           (message "Generating autoloads for %s failed" file)
+           (auto-compile-handle-autoloads-error (packed-loaddefs-file)))))
       success)))
 
 (defun auto-compile-delete-dest (dest &optional failurep)
   (unless failurep
     (let ((buf (get-file-buffer (packed-source-file dest))))
       (when buf
-	(with-current-buffer buf
-	  (kill-local-variable 'auto-compile-pretend-byte-compiled)))))
+        (with-current-buffer buf
+          (kill-local-variable 'auto-compile-pretend-byte-compiled)))))
   (condition-case nil
       (when (file-exists-p dest)
-	(message "Deleting %s..." dest)
-	(delete-file dest)
-	(message "Deleting %s...done" dest))
+        (message "Deleting %s..." dest)
+        (delete-file dest)
+        (message "Deleting %s...done" dest))
     (file-error
      (auto-compile-ding)
      (message "Deleting %s...failed" dest))))
@@ -413,12 +413,12 @@ compiled) causing it to try again when being called again. Command
     (when (file-exists-p dest)
       (auto-compile-delete-dest dest t)))
   (when (or buf
-	    (and auto-compile-visit-failed
-		 (setq buf (find-file-noselect file))))
+            (and auto-compile-visit-failed
+                 (setq buf (find-file-noselect file))))
     (with-current-buffer buf
       (setq auto-compile-pretend-byte-compiled t)
       (when auto-compile-mark-failed-modified
-	(set-buffer-modified-p t)))))
+        (set-buffer-modified-p t)))))
 
 (defun auto-compile-handle-autoloads-error (dest)
   (auto-compile-ding)
@@ -435,53 +435,53 @@ compiled) causing it to try again when being called again. Command
   '(auto-compile-mode
     (:eval
       (let* ((src (buffer-file-name))
-	     (dst (byte-compile-dest-file src)))
-	(list
-	 (cond
-	  ((file-writable-p dst)
-	   (propertize
-	    "-"
-	    'help-echo "Byte-compile destination is writable"
-	    'mouse-face 'mode-line))
-	  (t
-	   (propertize
-	    "%%"
-	    'help-echo "Byte-compile destination is read-only"
-	    'mouse-face 'mode-line)))
-	 (cond
-	  ((and auto-compile-pretend-byte-compiled
-		(not (file-exists-p dst)))
-	   (propertize
-	    "!"
-	    'help-echo "Failed to byte-compile updating\nmouse-1 retry"
-	    'mouse-face 'mode-line-highlight
-	    'local-map (purecopy (make-mode-line-mouse-map
-				  'mouse-1
-				  #'auto-compile-mode-line-byte-compile))))
-	  ((not (file-exists-p dst))
-	   (propertize
-	    "%%"
-	    'help-echo "Byte-compiled file doesn't exist\nmouse-1 create"
-	    'mouse-face 'mode-line-highlight
-	    'local-map (purecopy (make-mode-line-mouse-map
-				  'mouse-1
-				  #'mode-line-toggle-auto-compile))))
-	  ((file-newer-than-file-p src dst)
-	   (propertize
-	    "*"
-	    'help-echo "Byte-compiled file needs updating\nmouse-1 update"
-	    'mouse-face 'mode-line-highlight
-	    'local-map (purecopy (make-mode-line-mouse-map
-				  'mouse-1
-				  #'auto-compile-mode-line-byte-compile))))
-	  (t
-	   (propertize
-	    "-"
-	    'help-echo "Byte-compiled file is up-to-date\nmouse-1 remove"
-	    'mouse-face 'mode-line-highlight
-	    'local-map (purecopy (make-mode-line-mouse-map
-				  'mouse-1
-				  #'mode-line-toggle-auto-compile))))))))))
+             (dst (byte-compile-dest-file src)))
+        (list
+         (cond
+          ((file-writable-p dst)
+           (propertize
+            "-"
+            'help-echo "Byte-compile destination is writable"
+            'mouse-face 'mode-line))
+          (t
+           (propertize
+            "%%"
+            'help-echo "Byte-compile destination is read-only"
+            'mouse-face 'mode-line)))
+         (cond
+          ((and auto-compile-pretend-byte-compiled
+                (not (file-exists-p dst)))
+           (propertize
+            "!"
+            'help-echo "Failed to byte-compile updating\nmouse-1 retry"
+            'mouse-face 'mode-line-highlight
+            'local-map (purecopy (make-mode-line-mouse-map
+                                  'mouse-1
+                                  #'auto-compile-mode-line-byte-compile))))
+          ((not (file-exists-p dst))
+           (propertize
+            "%%"
+            'help-echo "Byte-compiled file doesn't exist\nmouse-1 create"
+            'mouse-face 'mode-line-highlight
+            'local-map (purecopy (make-mode-line-mouse-map
+                                  'mouse-1
+                                  #'mode-line-toggle-auto-compile))))
+          ((file-newer-than-file-p src dst)
+           (propertize
+            "*"
+            'help-echo "Byte-compiled file needs updating\nmouse-1 update"
+            'mouse-face 'mode-line-highlight
+            'local-map (purecopy (make-mode-line-mouse-map
+                                  'mouse-1
+                                  #'auto-compile-mode-line-byte-compile))))
+          (t
+           (propertize
+            "-"
+            'help-echo "Byte-compiled file is up-to-date\nmouse-1 remove"
+            'mouse-face 'mode-line-highlight
+            'local-map (purecopy (make-mode-line-mouse-map
+                                  'mouse-1
+                                  #'mode-line-toggle-auto-compile))))))))))
 
 (put 'mode-line-auto-compile 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-auto-compile)
@@ -494,7 +494,7 @@ compiled) causing it to try again when being called again. Command
     (toggle-auto-compile
      (buffer-file-name)
      (if (file-exists-p (byte-compile-dest-file (buffer-file-name)))
-	 'quit
+         'quit
        'start))
     (force-mode-line-update)))
 
@@ -519,10 +519,10 @@ Without this advice the outdated byte compiled file would get loaded."
   :global t
   (if auto-compile-on-load-mode
       (progn
-	(ad-enable-advice 'load    'before 'auto-compile-on-load)
-	(ad-enable-advice 'require 'before 'auto-compile-on-load)
-	(ad-activate 'load)
-	(ad-activate 'require))
+        (ad-enable-advice 'load    'before 'auto-compile-on-load)
+        (ad-enable-advice 'require 'before 'auto-compile-on-load)
+        (ad-activate 'load)
+        (ad-activate 'require))
     (ad-disable-advice 'load    'before 'auto-compile-on-load)
     (ad-disable-advice 'require 'before 'auto-compile-on-load)))
 
@@ -546,19 +546,22 @@ Without this advice the outdated byte compiled file would get loaded."
 (defun auto-compile-on-load (file &optional nosuffix)
   (let (byte-compile-verbose dest)
     (condition-case nil
-	(when (and (stringp file)
-		   (not (equal file ""))
-		   (setq file (packed-locate-library file nosuffix))
-		   (setq dest (byte-compile-dest-file file))
-		   (file-exists-p dest)
-		   (file-newer-than-file-p file dest))
-	    (message "Recompiling %s..." file)
-	    (byte-compile-file file)
-	    (message "Recompiling %s...done" file))
+        (when (and (stringp file)
+                   (not (equal file ""))
+                   (setq file (packed-locate-library file nosuffix))
+                   (setq dest (byte-compile-dest-file file))
+                   (file-exists-p dest)
+                   (file-newer-than-file-p file dest))
+            (message "Recompiling %s..." file)
+            (byte-compile-file file)
+            (message "Recompiling %s...done" file))
       (error
        (message "Recompiling %s...failed" file)
        (when dest
-	 (auto-compile-delete-dest dest t))))))
+         (auto-compile-delete-dest dest t))))))
 
 (provide 'auto-compile)
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; End:
 ;;; auto-compile.el ends here
