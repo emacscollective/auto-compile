@@ -144,9 +144,9 @@ This mode should be enabled globally, using it's globalized variant
 
 ;;;###autoload
 (define-globalized-minor-mode auto-compile-global-mode
-  auto-compile-mode auto-compile-on)
+  auto-compile-mode turn-on-auto-compile-mode)
 
-(defun auto-compile-on ()
+(defun turn-on-auto-compile-mode ()
   (when (eq major-mode 'emacs-lisp-mode)
     (auto-compile-mode 1)))
 
