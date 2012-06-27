@@ -546,9 +546,7 @@ Without this advice the outdated byte compiled file would get loaded."
 (defun auto-compile-on-load (file &optional nosuffix)
   (let (byte-compile-verbose dest)
     (condition-case nil
-        (when (and (stringp file)
-                   (not (equal file ""))
-                   (setq file (packed-locate-library file nosuffix))
+        (when (and (setq file (packed-locate-library file nosuffix))
                    (setq dest (byte-compile-dest-file file))
                    (file-exists-p dest)
                    (file-newer-than-file-p file dest))
