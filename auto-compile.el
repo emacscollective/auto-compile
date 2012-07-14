@@ -166,6 +166,7 @@ files even if their byte code file already exist and are up-to-date.
 
 If you disable this you may alternatively turn off, then turn on again
 auto compilation to recompile all files in the directory."
+  :group 'auto-compile
   :type 'boolean)
 
 (defcustom auto-compile-recursive "^[^.]"
@@ -174,6 +175,7 @@ auto compilation to recompile all files in the directory."
 Must be a boolean or a regular expression in which case only directories
 whose file-name match are recursed into.  The files in a directory
 explicitly selected are always processed."
+  :group 'auto-compile
   :type '(choice (const  :tag "All subdirectories" t)
                  (const  :tag "Non-hidden subdirectories" "^[^.]")
                  (string :tag "Matching subdirectories")
@@ -187,6 +189,7 @@ visited in a buffer already.  Also set the buffer local value of variable
 `auto-compile-pretend-byte-compiled' (which see) to t and mark the buffer
 as modified if the value of variable `auto-compile-mark-failed-modified'
 is non-nil."
+  :group 'auto-compile
   :type 'boolean)
 
 (defcustom auto-compile-mark-failed-modified t
@@ -195,6 +198,7 @@ is non-nil."
 This serves as a reminder to fix fatal errors.  While useful this can
 get annoying so this variable can be quickly toggled with the command
 `auto-compile-toggle-mark-failed-modified'."
+  :group 'auto-compile
   :type 'boolean)
 
 (defcustom auto-compile-ding t
@@ -205,6 +209,7 @@ unmatched parens, or failure to remove file) because aborting and
 therefor not processing the remaining files would be confusing.  Instead
 it continues and beeps or flashes the screen to get the users attention;
 set this variable to nil to disable even that."
+  :group 'auto-compile
   :type 'boolean)
 
 (defcustom auto-compile-check-parens t
@@ -214,6 +219,7 @@ This only has as an effect on files which are currently being visited in
 a buffer other files are compiled without this prior check.  If unbalanced
 parentheses are found no attempt is made to compile the file as that would
 obviously fail also."
+  :group 'auto-compile
   :type 'boolean)
 
 (defcustom auto-compile-update-autoloads nil
@@ -221,6 +227,7 @@ obviously fail also."
 
 If no autoload file as specified by `packed-loaddefs-filename' can be
 found quietly skip this step."
+  :group 'auto-compile
   :type 'boolean)
 
 (defun auto-compile-set-use-mode-line (symbol value)
@@ -237,6 +244,7 @@ found quietly skip this step."
 This works by inserting `mode-line-auto-compile' into the default value of
 `mode-line-format' after the construct specified here.  If nil do not insert
 `mode-line-auto-compile' at all."
+  :group 'auto-compile
   :set 'auto-compile-set-use-mode-line
   :type '(choice (const :tag "don't insert" nil)
                  (const :tag "after mode-line-modified" mode-line-modified)
