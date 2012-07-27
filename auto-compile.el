@@ -29,7 +29,7 @@
 ;; This is a beta release.  Version numbers are inspired by how
 ;; Emacs is versioned - 1.1.0 will be the first stable version.
 
-;; This package provides the minor mode `auto-compile-global-mode' which
+;; This package provides the minor mode `auto-compile-on-save-mode' which
 ;; automatically compiles Emacs Lisp code when the visiting buffers are
 ;; saved to their source files, provided that the respective byte code
 ;; files already exists.  If the byte code file does not already exist
@@ -63,7 +63,7 @@
 ;; So do yourself and others a favor and enable this mode by adding the
 ;; following to your init file:
 ;;
-;;     (auto-compile-global-mode 1)
+;;     (auto-compile-on-save-mode 1)
 
 ;; Auto-Compile mode is designed to stay out of your way as much as it
 ;; can while still motivating you to get things fixed.  But Auto-Compile
@@ -90,7 +90,7 @@
 ;;     (add-to-list 'load-path "/path/to/auto-compile")
 ;;     (require 'auto-compile)
 ;;     (auto-compile-on-load-mode 1)
-;;     (auto-compile-global-mode 1)
+;;     (auto-compile-on-save-mode 1)
 
 ;; Also note that just because no warnings and/or errors are reported when
 ;; Auto-Compile mode compiles a source file this does not necessarily mean
@@ -132,9 +132,11 @@ nothing.  Therefor to disable automatic compilation remove the byte code
 file.  See command `toggle-auto-compile' for a convenient way to do so.
 
 This mode should be enabled globally, using it's globalized variant
-`auto-compile-global-mode'."
+`auto-compile-on-save-mode'."
   :lighter auto-compile-mode-lighter
   :group 'auto-compile
+  (or (derived-mode-p 'emacs-lisp-mode)
+      (error "This mode only makes sense with emacs-lisp-mode"))
   (if auto-compile-mode
       (add-hook  'after-save-hook 'auto-compile-byte-compile nil t)
     (remove-hook 'after-save-hook 'auto-compile-byte-compile t))
@@ -143,8 +145,11 @@ This mode should be enabled globally, using it's globalized variant
    auto-compile-use-mode-line))
 
 ;;;###autoload
-(define-globalized-minor-mode auto-compile-global-mode
+(define-globalized-minor-mode auto-compile-on-save-mode
   auto-compile-mode turn-on-auto-compile-mode)
+
+(define-obsolete-function-alias 'auto-compile-global-mode
+  'auto-compile-on-save-mode)
 
 (defun turn-on-auto-compile-mode ()
   (when (eq major-mode 'emacs-lisp-mode)
