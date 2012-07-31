@@ -142,7 +142,7 @@ This mode should be enabled globally, using it's globalized variant
     (remove-hook 'after-save-hook 'auto-compile-byte-compile t))
   (auto-compile-set-use-mode-line
    'auto-compile-use-mode-line
-   auto-compile-use-mode-line))
+   (bound-and-true-p auto-compile-use-mode-line)))
 
 ;;;###autoload
 (define-globalized-minor-mode auto-compile-on-save-mode
