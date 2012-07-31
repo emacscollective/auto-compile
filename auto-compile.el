@@ -4,10 +4,14 @@
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Version: 1.0.4
+;; Version: 1.0.5
 ;; Status: beta
+;; Package-Requires: ((magit "1.1.1") (packed "0.2.1"))
 ;; Homepage: http://tarsius.github.com/auto-compile
 ;; Keywords: compile, convenience, lisp
+
+;; This is a beta release.  Version numbers are inspired by how
+;; Emacs is versioned - 1.1.0 will be the first stable version.
 
 ;; This file is not part of GNU Emacs.
 
@@ -25,9 +29,6 @@
 ;; see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; This is a beta release.  Version numbers are inspired by how
-;; Emacs is versioned - 1.1.0 will be the first stable version.
 
 ;; This package provides the minor mode `auto-compile-on-save-mode' which
 ;; automatically compiles Emacs Lisp code when the visiting buffers are
