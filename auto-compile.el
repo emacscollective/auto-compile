@@ -4,7 +4,7 @@
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Version: 1.0.5
+;; Version: 1.0.6
 ;; Status: beta
 ;; Package-Requires: ((magit "1.1.1") (packed "0.2.1"))
 ;; Homepage: http://tarsius.github.com/auto-compile
@@ -104,6 +104,9 @@
 ;;       -L . -L ../dependency/ -f batch-byte-compile *.el
 
 ;;; Code:
+
+(eval-when-compile
+  (require 'cl)) ; push
 
 (require 'bytecomp)
 (require 'packed)
