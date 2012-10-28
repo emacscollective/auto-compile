@@ -132,7 +132,7 @@
 
 After a buffer containing Emacs Lisp code is saved to its source file
 update the respective byte code file.  If the latter does not exist do
-nothing.  Therefor to disable automatic compilation remove the byte code
+nothing.  Therefore to disable automatic compilation remove the byte code
 file.  See command `toggle-auto-compile' for a convenient way to do so.
 
 This mode should be enabled globally, using it's globalized variant
