@@ -239,6 +239,19 @@ found quietly skip this step."
   :group 'auto-compile
   :type 'boolean)
 
+(defcustom auto-compile-delete-stray-dest nil
+  "Whether to remove stray byte-compile destination files.
+
+If this is non-nil byte-compile destinations files are removed if
+the respective source file does not exist anymore.  While this
+happens automatically in certain situations it does not guarantee
+that such files never exist.  When `auto-compile-on-load-mode' is
+turned on it *does* guarantee that a stray elc file cannot shadow
+a source file that is located in a directory that comes later in
+the `load-path'."
+  :group 'auto-compile
+  :type 'boolean)
+
 (defun auto-compile-set-use-mode-line (symbol value)
   (set-default symbol value)
   (set-default 'mode-line-format
@@ -340,7 +353,11 @@ or absence of the respective byte code files."
                    (or (not (string-match "^\\.?#" (file-name-nondirectory f)))
                        (file-exists-p dest))
                    (auto-compile-byte-compile f t))
-            (auto-compile-delete-dest dest))))))))
+            (auto-compile-delete-dest dest))))
+       ((and auto-compile-delete-stray-dest
+             (string-match "\\.elc$" f)
+             (not (file-exists-p (packed-el-file f))))
+        (auto-compile-delete-dest f))))))
 
 (defalias 'auto-compile-toggle 'toggle-auto-compile)
 
@@ -562,19 +579,24 @@ Without this advice the outdated byte-compiled file would get loaded."
     (auto-compile-on-load (or filename (symbol-name feature)))))
 
 (defun auto-compile-on-load (file &optional nosuffix)
-  (let (byte-compile-verbose dest)
+  (let (byte-compile-verbose el elc el*)
     (condition-case nil
-        (when (and (setq file (packed-locate-library file nosuffix))
-                   (setq dest (byte-compile-dest-file file))
-                   (file-exists-p dest)
-                   (file-newer-than-file-p file dest))
-            (message "Recompiling %s..." file)
-            (byte-compile-file file)
-            (message "Recompiling %s...done" file))
+        (when (setq el (packed-locate-library file nosuffix))
+          (setq elc (byte-compile-dest-file el))
+          (when (and (file-exists-p elc)
+                     (file-newer-than-file-p el elc))
+            (message "Recompiling %s..." el)
+            (byte-compile-file el)
+            (message "Recompiling %s...done" el))
+          (when auto-compile-delete-stray-dest
+            (setq el* (locate-library file))
+            (unless (equal (file-name-directory el)
+                           (file-name-directory el*))
+              (auto-compile-delete-dest el* t))))
       (error
-       (message "Recompiling %s...failed" file)
-       (when dest
-         (auto-compile-delete-dest dest t))))))
+       (message "Recompiling %s...failed" el)
+       (when elc
+         (auto-compile-delete-dest elc t))))))
 
 (provide 'auto-compile)
 ;; Local Variables:
