@@ -550,14 +550,14 @@ Without this advice the outdated byte compiled file would get loaded."
   ;; (file &optional noerror nomessage nosuffix must-suffix)
   "Before loading the library recompile it if it needs recompilation.
 It needs recompilation if it is newer than the byte-compile destination.
-Without this advice the outdated byte compiled file would get loaded."
+Without this advice the outdated byte-compiled file would get loaded."
   (auto-compile-on-load file nosuffix))
 
 (defadvice require (before auto-compile-on-load disable)
   ;; (feature &optional FILENAME NOERROR)
   "Before loading the library recompile it if it needs recompilation.
 It needs recompilation if it is newer than the byte-compile destination.
-Without this advice the outdated byte compiled file would get loaded."
+Without this advice the outdated byte-compiled file would get loaded."
   (auto-compile-on-load (or filename (symbol-name feature))))
 
 (defun auto-compile-on-load (file &optional nosuffix)
