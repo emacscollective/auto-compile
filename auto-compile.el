@@ -558,7 +558,8 @@ Without this advice the outdated byte-compiled file would get loaded."
   "Before loading the library recompile it if it needs recompilation.
 It needs recompilation if it is newer than the byte-compile destination.
 Without this advice the outdated byte-compiled file would get loaded."
-  (auto-compile-on-load (or filename (symbol-name feature))))
+  (unless (featurep feature)
+    (auto-compile-on-load (or filename (symbol-name feature)))))
 
 (defun auto-compile-on-load (file &optional nosuffix)
   (let (byte-compile-verbose dest)
