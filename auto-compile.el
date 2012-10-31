@@ -411,7 +411,7 @@ compiled) causing it to try again when being called again. Command
 
 (defun auto-compile-delete-dest (dest &optional failurep)
   (unless failurep
-    (let ((buf (get-file-buffer (packed-source-file dest))))
+    (let ((buf (get-file-buffer (packed-el-file dest))))
       (when buf
         (with-current-buffer buf
           (kill-local-variable 'auto-compile-pretend-byte-compiled)))))
