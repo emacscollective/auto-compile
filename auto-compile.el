@@ -380,7 +380,7 @@ compiled) causing it to try again when being called again. Command
 `toggle-auto-compile' will also pretend the byte code file exists.")
 (make-variable-buffer-local 'auto-compile-pretend-byte-compiled)
 
-(defun auto-compile-byte-compile (&optional file start keep-loaddefs)
+(defun auto-compile-byte-compile (&optional file start)
   "Perform byte compilation for Auto-Compile mode."
   (let ((default-directory default-directory)
         dest buf success)
@@ -417,8 +417,7 @@ compiled) causing it to try again when being called again. Command
           (file-error
            (message "Byte-compiling %s failed" file)
            (auto-compile-handle-compile-error file buf))))
-      (when (and (not keep-loaddefs)
-                 auto-compile-update-autoloads)
+      (when auto-compile-update-autoloads
         (condition-case update-loaddefs
             (packed-update-autoloads nil file)
           (error
