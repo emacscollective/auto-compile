@@ -231,14 +231,6 @@ obviously fail also."
   :group 'auto-compile
   :type 'boolean)
 
-(defcustom auto-compile-update-autoloads nil
-  "Whether to update autoloads after compiling.
-
-If no autoload file as specified by `packed-loaddefs-filename' can be
-found quietly skip this step."
-  :group 'auto-compile
-  :type 'boolean)
-
 (defcustom auto-compile-delete-stray-dest nil
   "Whether to remove stray byte-compile destination files.
 
@@ -417,12 +409,6 @@ compiled) causing it to try again when being called again. Command
           (file-error
            (message "Byte-compiling %s failed" file)
            (auto-compile-handle-compile-error file buf))))
-      (when auto-compile-update-autoloads
-        (condition-case update-loaddefs
-            (packed-update-autoloads nil file)
-          (error
-           (message "Generating autoloads for %s failed" file)
-           (auto-compile-handle-autoloads-error (packed-loaddefs-file)))))
       success)))
 
 (defun auto-compile-delete-dest (dest &optional failurep)
