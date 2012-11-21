@@ -100,8 +100,7 @@
 ;; system but not necessarily on the users' systems.  So you should still
 ;; manually compile your packages before release:
 ;;
-;;     emacs -batch -q --no-site-file \
-;;       -L . -L ../dependency/ -f batch-byte-compile *.el
+;;     emacs -batch -Q -L . -L ../dependency/ -f batch-byte-compile *.el
 
 ;;; Code:
 
