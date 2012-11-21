@@ -451,58 +451,58 @@ compiled) causing it to try again when being called again. Command
 ;;; Mode-Line.
 
 (defvar mode-line-auto-compile
-  '(auto-compile-mode
-    (:eval
-     (let ((src (buffer-file-name))
-           dst)
-       (when (and (derived-mode-p 'emacs-lisp-mode)
-                  (setq dst (byte-compile-dest-file src)))
-         (list
-          (cond
-           ((file-writable-p dst)
-            (propertize
-             "-"
-             'help-echo "Byte-compile destination is writable"
-             'mouse-face 'mode-line))
-           (t
-            (propertize
-             "%%"
-             'help-echo "Byte-compile destination is read-only"
-             'mouse-face 'mode-line)))
-          (cond
-           ((and auto-compile-pretend-byte-compiled
-                 (not (file-exists-p dst)))
-            (propertize
-             "!"
-             'help-echo "Failed to byte-compile updating\nmouse-1 retry"
-             'mouse-face 'mode-line-highlight
-             'local-map (purecopy (make-mode-line-mouse-map
-                                   'mouse-1
-                                   #'auto-compile-mode-line-byte-compile))))
-           ((not (file-exists-p dst))
-            (propertize
-             "%%"
-             'help-echo "Byte-compiled file doesn't exist\nmouse-1 create"
-             'mouse-face 'mode-line-highlight
-             'local-map (purecopy (make-mode-line-mouse-map
-                                   'mouse-1
-                                   #'mode-line-toggle-auto-compile))))
-           ((file-newer-than-file-p src dst)
-            (propertize
-             "*"
-             'help-echo "Byte-compiled file needs updating\nmouse-1 update"
-             'mouse-face 'mode-line-highlight
-             'local-map (purecopy (make-mode-line-mouse-map
-                                   'mouse-1
-                                   #'auto-compile-mode-line-byte-compile))))
-           (t
-            (propertize
-             "-"
-             'help-echo "Byte-compiled file is up-to-date\nmouse-1 remove"
-             'mouse-face 'mode-line-highlight
-             'local-map (purecopy (make-mode-line-mouse-map
-                                   'mouse-1
-                                   #'mode-line-toggle-auto-compile)))))))))))
+  '(auto-compile-mode (:eval (mode-line-auto-compile-control))))
+
+(defun mode-line-auto-compile-control ()
+  (let ((src (buffer-file-name))
+        dst)
+    (when (and src (setq dst (byte-compile-dest-file src)))
+      (list
+       (cond
+        ((file-writable-p dst)
+         (propertize
+          "-"
+          'help-echo "Byte-compile destination is writable"
+          'mouse-face 'mode-line))
+        (t
+         (propertize
+          "%%"
+          'help-echo "Byte-compile destination is read-only"
+          'mouse-face 'mode-line)))
+       (cond
+        ((and auto-compile-pretend-byte-compiled
+              (not (file-exists-p dst)))
+         (propertize
+          "!"
+          'help-echo "Failed to byte-compile updating\nmouse-1 retry"
+          'mouse-face 'mode-line-highlight
+          'local-map (purecopy (make-mode-line-mouse-map
+                                'mouse-1
+                                #'auto-compile-mode-line-byte-compile))))
+        ((not (file-exists-p dst))
+         (propertize
+          "%%"
+          'help-echo "Byte-compiled file doesn't exist\nmouse-1 create"
+          'mouse-face 'mode-line-highlight
+          'local-map (purecopy (make-mode-line-mouse-map
+                                'mouse-1
+                                #'mode-line-toggle-auto-compile))))
+        ((file-newer-than-file-p src dst)
+         (propertize
+          "*"
+          'help-echo "Byte-compiled file needs updating\nmouse-1 update"
+          'mouse-face 'mode-line-highlight
+          'local-map (purecopy (make-mode-line-mouse-map
+                                'mouse-1
+                                #'auto-compile-mode-line-byte-compile))))
+        (t
+         (propertize
+          "-"
+          'help-echo "Byte-compiled file is up-to-date\nmouse-1 remove"
+          'mouse-face 'mode-line-highlight
+          'local-map (purecopy (make-mode-line-mouse-map
+                                'mouse-1
+                                #'mode-line-toggle-auto-compile)))))))))
 
 (put 'mode-line-auto-compile 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-auto-compile)
