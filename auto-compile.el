@@ -4,9 +4,9 @@
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Version: 1.0.6
+;; Version: 1.0.7
 ;; Status: beta
-;; Package-Requires: ((magit "1.1.1") (packed "0.2.1"))
+;; Package-Requires: ((packed "0.3.2"))
 ;; Homepage: http://tarsius.github.com/auto-compile
 ;; Keywords: compile, convenience, lisp
 
