@@ -104,15 +104,17 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl)) ; push
-
 (require 'bytecomp)
 (require 'packed)
 
 (declare-function autoload-rubric "autoload")
 (declare-function autoload-find-destination "autoload")
 (declare-function autoload-file-load-name "autoload")
+
+(eval-when-compile
+  (or (< emacs-major-version 24)
+      (< emacs-minor-version 3)
+      (require 'cl-lib))) ; push
 
 (defgroup auto-compile nil
   "Compile Emacs Lisp source files after the visiting buffers are saved."
