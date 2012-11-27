@@ -6,7 +6,7 @@
 ;; Created: 20080830
 ;; Version: 1.0.7
 ;; Status: beta
-;; Package-Requires: ((packed "0.3.2"))
+;; Package-Requires: ((cl-lib "0.2") (packed "0.3.2"))
 ;; Homepage: http://tarsius.github.com/auto-compile
 ;; Keywords: compile, convenience, lisp
 
