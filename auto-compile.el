@@ -308,9 +308,9 @@ or absence of the respective byte code files."
                  'quit
                'start))
             (t
-             (case (read-char-choice
-                    "Toggle automatic compilation (s=tart, q=uit, C-g)? "
-                    '(?s ?q))
+             (cl-case (read-char-choice
+                       "Toggle automatic compilation (s=tart, q=uit, C-g)? "
+                       '(?s ?q))
                (?s 'start)
                (?q 'quit))))))
      (list (read-file-name (concat (capitalize (symbol-name action))
@@ -320,7 +320,7 @@ or absence of the respective byte code files."
                            (when file (file-name-nondirectory file)))
            action)))
   (if (file-regular-p file)
-      (case action
+      (cl-case action
         (start (auto-compile-byte-compile file t))
         (quit  (auto-compile-delete-dest (byte-compile-dest-file file))))
     (when (called-interactively-p 'any)
