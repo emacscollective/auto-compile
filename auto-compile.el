@@ -112,9 +112,8 @@
 (declare-function autoload-file-load-name "autoload")
 
 (eval-when-compile
-  (or (< emacs-major-version 24)
-      (< emacs-minor-version 3)
-      (require 'cl-lib))) ; push
+  (when (version< emacs-version "24.2.50")
+    (require 'cl-lib))) ; push
 
 (defgroup auto-compile nil
   "Compile Emacs Lisp source files after the visiting buffers are saved."
