@@ -301,9 +301,8 @@ multiple files is toggled as follows:
   with a negative prefix argument always remove byte code files.
 
 * When _removing_ byte code files then all byte code files are
-  removed.  If `auto-compile-toggle-deletes-stray-dest' is
-  non-nil this even includes byte code files for which no source
-  file exists.
+  removed.  If `auto-compile-deletes-stray-dest' is non-nil this
+  even includes byte code files for which no source file exists.
 
 * When _creating_ byte code files only do so for source files
   that are actual libraries.  Source files that provide the
