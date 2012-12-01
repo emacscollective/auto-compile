@@ -317,9 +317,9 @@ or absence of the respective byte code files."
                (?q 'quit))))))
      (list (read-file-name (concat (capitalize (symbol-name action))
                                    " auto-compiling: ")
-                           (when file (file-name-directory file))
+                           (and file (file-name-directory file))
                            nil t
-                           (when file (file-name-nondirectory file)))
+                           (and file (file-name-nondirectory file)))
            action)))
   (if (file-regular-p file)
       (cl-case action
