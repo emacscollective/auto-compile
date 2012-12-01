@@ -306,10 +306,7 @@ or absence of the respective byte code files."
                  'start
                'quit))
             (file
-             (if (or (file-exists-p (byte-compile-dest-file file))
-                     (and (eq major-mode 'emacs-lisp-mode)
-                          (file-exists-p (byte-compile-dest-file
-                                          (buffer-file-name buf)))))
+             (if (file-exists-p (byte-compile-dest-file file))
                  'quit
                'start))
             (t
