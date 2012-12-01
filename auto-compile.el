@@ -112,15 +112,12 @@
 ;;; Code:
 
 (require 'bytecomp)
+(require 'cl-lib)
 (require 'packed)
 
 (declare-function autoload-rubric "autoload")
 (declare-function autoload-find-destination "autoload")
 (declare-function autoload-file-load-name "autoload")
-
-(eval-when-compile
-  (when (version< emacs-version "24.2.50")
-    (require 'cl-lib))) ; push
 
 (defgroup auto-compile nil
   "Automatically compile Emacs Lisp source libraries."
