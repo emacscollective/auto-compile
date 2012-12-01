@@ -265,6 +265,11 @@ This works by inserting `mode-line-auto-compile' into the default value of
                  (const :tag "after mode-line-remote" mode-line-remote)
                  (sexp  :tag "after construct")))
 
+(defcustom auto-compile-toggle-deletes-nonlib-dest nil
+  "Whether to remove non-library byte code files when toggling compilation."
+  :group 'auto-compile
+  :type 'boolean)
+
 ;;;###autoload
 (defun toggle-auto-compile (file action)
   "Toggle automatic compilation of an Emacs Lisp source file or files.
@@ -346,6 +351,10 @@ or absence of the respective byte code files."
                        (file-exists-p dest))
                    (auto-compile-byte-compile f t))
             (auto-compile-delete-dest dest))))
+       ((and auto-compile-toggle-deletes-nonlib-dest
+             (eq action 'quit)
+             (string-match (packed-el-regexp) f))
+        (auto-compile-delete-dest (byte-compile-dest-file f)))
        ((and auto-compile-delete-stray-dest
              (string-match "\\.elc$" f)
              (not (file-exists-p (packed-el-file f))))
