@@ -6,7 +6,7 @@
 ;; Created: 20080830
 ;; Version: 1.0.7
 ;; Status: beta
-;; Package-Requires: ((cl-lib "0.2") (packed "0.3.2"))
+;; Package-Requires: ((cl-lib "0.2") (packed "0.3.3"))
 ;; Homepage: http://tarsius.github.com/auto-compile
 ;; Keywords: compile, convenience, lisp
 
@@ -250,17 +250,16 @@ If nil do not insert `mode-line-auto-compile' at all."
                  (const :tag "after mode-line-remote" mode-line-remote)
                  (sexp  :tag "after construct")))
 
-(defcustom auto-compile-toggle-recursively "^[^.]"
+(defcustom auto-compile-toggle-recursively t
   "Whether to recurse into subdirectories when toggling compilation.
 
-Must be a boolean or a regular expression in which case only
-directories whose file-name match are recursed into.  The files
-in a directory explicitly selected are always processed."
+If this non-nil only recurse into subdirectories for which
+`packed-ignore-directory-p' returns nil.  Most importanly don't
+enter hidden directories or those containing a file named
+\".nosearch\".  Files in the top directory explicitly selected by
+the user are always processed."
   :group 'auto-compile
-  :type '(choice (const  :tag "All subdirectories" t)
-                 (const  :tag "Non-hidden subdirectories" "^[^.]")
-                 (string :tag "Matching subdirectories")
-                 (const  :tag "Don't" nil)))
+  :type 'boolean)
 
 (defcustom auto-compile-toggle-recompiles t
   "Whether to recompile all source files when turning on compilation.
@@ -324,9 +323,10 @@ multiple files is toggled as follows:
 
 * When `auto-compile-toggle-recursively' is non-nil recurse into
   subdirectories otherwise only files in the selected directory
-  are affected.  Only enter subdirectories for which
-  `packed-ignore-directory-p' returns non-nil; most importanly
-  don't enter directories containing a file named \".nosearch\"."
+  are affected.  Only enter subdirectories for which function
+  `packed-ignore-directory-p' returns non-nil; most importantly
+  don't enter hidden directories or those containing a file named
+  \".nosearch\"."
   (interactive
    (let* ((buf  (current-buffer))
           (file (when (eq major-mode 'emacs-lisp-mode)
@@ -365,10 +365,8 @@ multiple files is toggled as follows:
       (cond
        ((file-directory-p f)
         (when (and auto-compile-toggle-recursively
-                   (or (not (stringp auto-compile-toggle-recursively))
-                       (string-match
-                        auto-compile-toggle-recursively
-                        (file-name-nondirectory (directory-file-name f)))))
+                   ;; TODO pass the package name if we are certain
+                   (not (packed-ignore-directory-p f nil)))
           (toggle-auto-compile f action)))
        ((packed-library-p f)
         (let ((dest (byte-compile-dest-file f)))
