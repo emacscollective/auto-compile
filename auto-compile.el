@@ -167,29 +167,6 @@ This mode should be enabled globally, using it's globalized variant
   :group 'auto-compile
   :type 'boolean)
 
-(defcustom auto-compile-always-recompile t
-  "Whether to recompile all source files when turning on auto compilation.
-
-When turning on auto compilation for files in a directory recompile source
-files even if their byte code file already exist and are up-to-date.
-
-If you disable this you may alternatively turn off, then turn on again
-auto compilation to recompile all files in the directory."
-  :group 'auto-compile
-  :type 'boolean)
-
-(defcustom auto-compile-recursive "^[^.]"
-  "Whether to recurse into subdirectories when toggling auto compilation.
-
-Must be a boolean or a regular expression in which case only directories
-whose file-name match are recursed into.  The files in a directory
-explicitly selected are always processed."
-  :group 'auto-compile
-  :type '(choice (const  :tag "All subdirectories" t)
-                 (const  :tag "Non-hidden subdirectories" "^[^.]")
-                 (string :tag "Matching subdirectories")
-                 (const  :tag "Don't" nil)))
-
 (defcustom auto-compile-visit-failed t
   "Whether to visit source files which failed to compile.
 
@@ -231,6 +208,14 @@ obviously fail also."
   :group 'auto-compile
   :type 'boolean)
 
+(defun auto-compile-set-use-mode-line (symbol value)
+  (set-default symbol value)
+  (set-default 'mode-line-format
+               (delete 'mode-line-auto-compile mode-line-format))
+  (when (and value auto-compile-mode)
+    (push 'mode-line-auto-compile
+          (cdr (member value mode-line-format)))))
+
 (defcustom auto-compile-delete-stray-dest nil
   "Whether to remove stray byte-compile destination files.
 
@@ -244,14 +229,6 @@ the `load-path'."
   :group 'auto-compile
   :type 'boolean)
 
-(defun auto-compile-set-use-mode-line (symbol value)
-  (set-default symbol value)
-  (set-default 'mode-line-format
-               (delete 'mode-line-auto-compile mode-line-format))
-  (when (and value auto-compile-mode)
-    (push 'mode-line-auto-compile
-          (cdr (member value mode-line-format)))))
-
 (defcustom auto-compile-use-mode-line 'mode-line-modified
   "Whether to show information about the byte compiled file in the mode line.
 
@@ -264,6 +241,29 @@ This works by inserting `mode-line-auto-compile' into the default value of
                  (const :tag "after mode-line-modified" mode-line-modified)
                  (const :tag "after mode-line-remote" mode-line-remote)
                  (sexp  :tag "after construct")))
+
+(defcustom auto-compile-toggle-recursively "^[^.]"
+  "Whether to recurse into subdirectories when toggling auto compilation.
+
+Must be a boolean or a regular expression in which case only directories
+whose file-name match are recursed into.  The files in a directory
+explicitly selected are always processed."
+  :group 'auto-compile
+  :type '(choice (const  :tag "All subdirectories" t)
+                 (const  :tag "Non-hidden subdirectories" "^[^.]")
+                 (string :tag "Matching subdirectories")
+                 (const  :tag "Don't" nil)))
+
+(defcustom auto-compile-toggle-recompiles t
+  "Whether to recompile all source files when turning on auto compilation.
+
+When turning on auto compilation for files in a directory recompile source
+files even if their byte code file already exist and are up-to-date.
+
+If you disable this you may alternatively turn off, then turn on again
+auto compilation to recompile all files in the directory."
+  :group 'auto-compile
+  :type 'boolean)
 
 (defcustom auto-compile-toggle-deletes-nonlib-dest nil
   "Whether to remove non-library byte code files when toggling compilation."
@@ -335,17 +335,17 @@ or absence of the respective byte code files."
     (dolist (f (directory-files file t))
       (cond
        ((file-directory-p f)
-        (when (and auto-compile-recursive
-                   (or (not (stringp auto-compile-recursive))
+        (when (and auto-compile-toggle-recursively
+                   (or (not (stringp auto-compile-toggle-recursively))
                        (string-match
-                        auto-compile-recursive
+                        auto-compile-toggle-recursively
                         (file-name-nondirectory (directory-file-name f)))))
           (toggle-auto-compile f action)))
        ((packed-library-p f)
         (let ((dest (byte-compile-dest-file f)))
           (if (eq action 'start)
               (and (file-exists-p f)
-                   (or auto-compile-always-recompile
+                   (or auto-compile-toggle-recompiles
                        (file-newer-than-file-p f dest))
                    (or (not (string-match "^\\.?#" (file-name-nondirectory f)))
                        (file-exists-p dest))
