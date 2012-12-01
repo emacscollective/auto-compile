@@ -225,7 +225,7 @@ is made to compile the file as that would obviously fail also."
     (push 'mode-line-auto-compile
           (cdr (member value mode-line-format)))))
 
-(defcustom auto-compile-delete-stray-dest nil
+(defcustom auto-compile-delete-stray-dest t
   "Whether to remove stray byte code files.
 
 If this is non-nil byte code files without a corresponding source
