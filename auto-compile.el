@@ -150,9 +150,7 @@ variant `auto-compile-on-save-mode'.  Also see the related
   (if auto-compile-mode
       (add-hook  'after-save-hook 'auto-compile-byte-compile nil t)
     (remove-hook 'after-save-hook 'auto-compile-byte-compile t))
-  (auto-compile-set-use-mode-line
-   'auto-compile-use-mode-line
-   (bound-and-true-p auto-compile-use-mode-line)))
+  (auto-compile-modify-mode-line auto-compile-use-mode-line))
 
 ;;;###autoload
 (define-globalized-minor-mode auto-compile-on-save-mode
@@ -214,14 +212,6 @@ is made to compile the file as that would obviously fail also."
   :group 'auto-compile
   :type 'boolean)
 
-(defun auto-compile-set-use-mode-line (symbol value)
-  (set-default symbol value)
-  (set-default 'mode-line-format
-               (delete 'mode-line-auto-compile mode-line-format))
-  (when (and value auto-compile-mode)
-    (push 'mode-line-auto-compile
-          (cdr (member value mode-line-format)))))
-
 (defcustom auto-compile-delete-stray-dest t
   "Whether to remove stray byte code files.
 
@@ -234,14 +224,35 @@ directory that comes later in the `load-path'."
   :group 'auto-compile
   :type 'boolean)
 
-(defcustom auto-compile-use-mode-line 'mode-line-modified
+(defun auto-compile-modify-mode-line (after)
+  (let ((format (delete 'mode-line-auto-compile
+                        (default-value 'mode-line-format)))
+        cell)
+    (when (and after auto-compile-mode
+               (setq cell (member after format)))
+      (push 'mode-line-auto-compile (cdr cell)))
+    (set-default 'mode-line-format format)))
+
+(defcustom auto-compile-use-mode-line
+  (car (memq 'mode-line-modified (default-value 'mode-line-format)))
   "Whether to show information about the byte code file in the mode line.
 
 This works by inserting `mode-line-auto-compile' into the default
-value of `mode-line-format' after the construct specified here.
-If nil do not insert `mode-line-auto-compile' at all."
+value of `mode-line-format' after the construct (usually a symbol)
+specified here.  This happens every time local Auto-Compile mode
+is turned on so the specified construct does not have to a member
+of `mode-line-format' when this is set (this allows loading that
+package after `auto-compile-on-load-mode' has been activated, so
+that it can ensures the respective byte code file is up-to-date).
+
+If you want to add `mode-line-auto-compile' as a member of a
+variable that is itself a member of `mode-line-format' then you
+have to set this option to nil and manually modify that variable
+to include `mode-line-auto-compile'."
   :group 'auto-compile
-  :set 'auto-compile-set-use-mode-line
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (auto-compile-modify-mode-line value))
   :type '(choice (const :tag "don't insert" nil)
                  (const :tag "after mode-line-modified" mode-line-modified)
                  (const :tag "after mode-line-remote" mode-line-remote)
