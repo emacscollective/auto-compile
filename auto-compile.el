@@ -258,17 +258,6 @@ to include `mode-line-auto-compile'."
                  (const :tag "after mode-line-remote" mode-line-remote)
                  (sexp  :tag "after construct")))
 
-(defcustom auto-compile-toggle-recursively t
-  "Whether to recurse into subdirectories when toggling compilation.
-
-If this non-nil only recurse into subdirectories for which
-`packed-ignore-directory-p' returns nil.  Most importanly don't
-enter hidden directories or those containing a file named
-\".nosearch\".  Files in the top directory explicitly selected by
-the user are always processed."
-  :group 'auto-compile
-  :type 'boolean)
-
 (defcustom auto-compile-toggle-recompiles t
   "Whether to recompile all source files when turning on compilation.
 
@@ -371,9 +360,8 @@ multiple files is toggled as follows:
     (dolist (f (directory-files file t))
       (cond
        ((file-directory-p f)
-        (when (and auto-compile-toggle-recursively
-                   ;; TODO pass the package name if we are certain
-                   (not (packed-ignore-directory-p f nil)))
+        ;; TODO pass the package name if we are certain
+        (unless (packed-ignore-directory-p f nil)
           (toggle-auto-compile f action)))
        ((packed-library-p f)
         (let ((dest (byte-compile-dest-file f)))
