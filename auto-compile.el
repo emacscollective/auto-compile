@@ -331,8 +331,8 @@ multiple files is toggled as follows:
 * When `auto-compile-toggle-recursively' is non-nil recurse into
   subdirectories otherwise only files in the selected directory
   are affected.  Only enter subdirectories for which function
-  `packed-ignore-directory-p' returns non-nil; most importantly
-  don't enter hidden directories or those containing a file named
+  `packed-ignore-directory-p' returns nil; most importantly don't
+  enter hidden directories or those containing a file named
   \".nosearch\"."
   (interactive
    (let* ((buf  (current-buffer))
