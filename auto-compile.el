@@ -1,6 +1,6 @@
 ;;; auto-compile.el --- automatically compile Emacs Lisp libraries
 
-;; Copyright (C) 2008-2012  Jonas Bernoulli
+;; Copyright (C) 2008-2013  Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
@@ -602,25 +602,29 @@ file would get loaded."
   (unless (featurep feature)
     (auto-compile-on-load (or filename (symbol-name feature)))))
 
+(defvar auto-compile--loading nil)
+
 (defun auto-compile-on-load (file &optional nosuffix)
-  (let (byte-compile-verbose el elc el*)
-    (condition-case nil
-        (when (setq el (packed-locate-library file nosuffix))
-          (setq elc (byte-compile-dest-file el))
-          (when (and (file-exists-p elc)
-                     (file-newer-than-file-p el elc))
-            (message "Recompiling %s..." el)
-            (byte-compile-file el)
-            (message "Recompiling %s...done" el))
-          (when auto-compile-delete-stray-dest
-            (setq el* (locate-library file))
-            (unless (equal (file-name-directory el)
-                           (file-name-directory el*))
-              (auto-compile-delete-dest el* t))))
-      (error
-       (message "Recompiling %s...failed" el)
-       (when elc
-         (auto-compile-delete-dest elc t))))))
+  (unless (member file auto-compile--loading)
+    (let ((auto-compile--loading (cons file auto-compile--loading))
+          byte-compile-verbose el elc el*)
+      (condition-case nil
+          (when (setq el (packed-locate-library file nosuffix))
+            (setq elc (byte-compile-dest-file el))
+            (when (and (file-exists-p elc)
+                       (file-newer-than-file-p el elc))
+              (message "Recompiling %s..." el)
+              (byte-compile-file el)
+              (message "Recompiling %s...done" el))
+            (when auto-compile-delete-stray-dest
+              (setq el* (locate-library file))
+              (unless (equal (file-name-directory el)
+                             (file-name-directory el*))
+                (auto-compile-delete-dest el* t))))
+        (error
+         (message "Recompiling %s...failed" el)
+         (when elc
+           (auto-compile-delete-dest elc t)))))))
 
 (provide 'auto-compile)
 ;; Local Variables:
