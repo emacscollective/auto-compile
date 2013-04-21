@@ -289,16 +289,16 @@ removing the respective byte code file.
 If the user selects a directory then automatic compilation for
 multiple files is toggled as follows:
 
-* Whether byte code files should be created or removed is
-  determined by the existence or absence of the byte code file of
-  the source file that was current when this command was invoked.
+* With a positive prefix argument always compile source files;
+  with a negative prefix argument always remove byte code files.
+
+* Otherwise the existence or absence of the byte code file of
+  the source file that was current when this command was invoked
+  determines whether byte code files should be created or removed.
 
 * If no Emacs Lisp source file is being visited in the buffer
   that was current when the command was invoked ask the user what
   to do.
-
-* With a positive prefix argument always compile source files;
-  with a negative prefix argument always remove byte code files.
 
 * When _removing_ byte code files then all byte code files are
   removed.  If `auto-compile-deletes-stray-dest' is non-nil this
@@ -317,12 +317,9 @@ multiple files is toggled as follows:
   affected source files even when the respective source files are
   up-to-date.  Do so even for non-library source files.
 
-* When `auto-compile-toggle-recursively' is non-nil recurse into
-  subdirectories otherwise only files in the selected directory
-  are affected.  Only enter subdirectories for which function
-  `packed-ignore-directory-p' returns nil; most importantly don't
-  enter hidden directories or those containing a file named
-  \".nosearch\"."
+* Only enter subdirectories for which `packed-ignore-directory-p'
+  returns nil; most importantly don't enter hidden directories or
+  those containing a file named \".nosearch\"."
   (interactive
    (let* ((buf  (current-buffer))
           (file (when (eq major-mode 'emacs-lisp-mode)
