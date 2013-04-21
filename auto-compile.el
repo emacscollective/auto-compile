@@ -438,20 +438,21 @@ pretend the byte code file exists.")
            (auto-compile-handle-compile-error file buf)
            (throw 'auto-compile nil))))
       (when (or start
-                (file-exists-p (byte-compile-dest-file file))
+                (setq dest (byte-compile-dest-file file))
+                (file-exists-p dest)
                 (when buf
                   (with-current-buffer buf
                     auto-compile-pretend-byte-compiled)))
         (condition-case byte-compile
             (let ((byte-compile-verbose auto-compile-verbose))
-              (byte-compile-file file)
+              (setq success (byte-compile-file file))
               (when buf
                 (with-current-buffer buf
-                  (kill-local-variable auto-compile-pretend-byte-compiled)))
-              (setq success t))
+                  (kill-local-variable auto-compile-pretend-byte-compiled))))
           (file-error
            (message "Byte-compiling %s failed" file)
-           (auto-compile-handle-compile-error file buf)))
+           (auto-compile-handle-compile-error file buf)
+           (setq success nil)))
         (when (and auto-compile-update-autoloads
                    (setq loaddefs (packed-loaddefs-file)))
           (require 'autoload)
@@ -463,6 +464,16 @@ pretend the byte code file exists.")
             (error
              (message "Generating loaddefs for %s failed" file)
              (setq loaddefs nil)))))
+      (cl-case success
+        (no-byte-compile)
+        ((t) (message "Wrote %s.{%s,%s}%s"
+                      (file-name-sans-extension
+                       (file-name-sans-extension file))
+                      (progn (string-match "\\(\\.[^./]+\\)+$" file)
+                             (substring (match-string 0 file) 1))
+                      (file-name-extension dest)
+                      (if loaddefs " (+)" "")))
+        (t   (message "Wrote %s (byte-compiling failed)" file)))
       success)))
 
 (defun auto-compile-delete-dest (dest &optional failurep)
