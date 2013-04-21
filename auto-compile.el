@@ -118,7 +118,11 @@
 (declare-function autoload-rubric "autoload")
 (declare-function autoload-find-destination "autoload")
 (declare-function autoload-file-load-name "autoload")
+(declare-function autoload-generate-file-autoloads "autoload")
 
+(defvar autoload-modified-buffers)
+
+(defvar auto-compile-update-autoloads)
 (defvar auto-compile-use-mode-line)
 
 (defgroup auto-compile nil
@@ -211,6 +215,14 @@ This only has as an effect on files which are currently being
 visited in a buffer.  Other files are compiled without performing
 this check first.  If unbalanced parentheses are found no attempt
 is made to compile the file as that would obviously fail also."
+  :group 'auto-compile
+  :type 'boolean)
+
+(defcustom auto-compile-update-autoloads t
+  "Whether to update autoloads after compiling.
+
+If no autoload file as specified by `packed-loaddefs-filename' can be
+found quietly skip this step."
   :group 'auto-compile
   :type 'boolean)
 
@@ -406,7 +418,7 @@ pretend the byte code file exists.")
 (defun auto-compile-byte-compile (&optional file start)
   "Perform byte compilation for Auto-Compile mode."
   (let ((default-directory default-directory)
-        dest buf success)
+        dest buf success loaddefs)
     (when (and file
                (setq buf (get-file-buffer file))
                (buffer-modified-p buf)
@@ -439,7 +451,18 @@ pretend the byte code file exists.")
               (setq success t))
           (file-error
            (message "Byte-compiling %s failed" file)
-           (auto-compile-handle-compile-error file buf))))
+           (auto-compile-handle-compile-error file buf)))
+        (when (and auto-compile-update-autoloads
+                   (setq loaddefs (packed-loaddefs-file)))
+          (require 'autoload)
+          (condition-case autoload
+              (packed-with-loaddefs loaddefs
+                (let ((autoload-modified-buffers
+                       (list (find-buffer-visiting file))))
+                  (autoload-generate-file-autoloads file)))
+            (error
+             (message "Generating loaddefs for %s failed" file)
+             (setq loaddefs nil)))))
       success)))
 
 (defun auto-compile-delete-dest (dest &optional failurep)
@@ -477,6 +500,17 @@ pretend the byte code file exists.")
 (defun auto-compile-ding ()
   (when auto-compile-ding
     (ding)))
+
+;; REDEFINE autoload-save-buffers defined in autoload.el
+;; - verify buffers are still live before killing them
+(eval-after-load 'autoload
+  '(defun autoload-save-buffers ()
+     (while autoload-modified-buffers
+       (let ((buf (pop autoload-modified-buffers)))
+         (when (buffer-live-p buf)
+           (with-current-buffer buf
+             (let ((version-control 'never))
+               (save-buffer))))))))
 
 
 ;;; Mode-Line.
