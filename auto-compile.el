@@ -119,6 +119,8 @@
 (declare-function autoload-find-destination "autoload")
 (declare-function autoload-file-load-name "autoload")
 
+(defvar auto-compile-use-mode-line)
+
 (defgroup auto-compile nil
   "Automatically compile Emacs Lisp source libraries."
   :group 'convenience
