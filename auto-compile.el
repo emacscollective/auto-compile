@@ -431,7 +431,11 @@ pretend the byte code file exists.")
                   (with-current-buffer buf
                     auto-compile-pretend-byte-compiled)))
         (condition-case byte-compile
-            (let ((byte-compile-verbose auto-compile-verbose))
+            (let ((byte-compile-verbose auto-compile-verbose)
+                  ;; byte-compiling runs theses hooks; disable them.
+                  fundamental-mode-hook
+                  prog-mode-hook
+                  emacs-lisp-mode-hook)
               (byte-compile-file file)
               (when buf
                 (with-current-buffer buf
