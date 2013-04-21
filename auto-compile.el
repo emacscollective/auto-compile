@@ -35,7 +35,7 @@
 ;; never loads outdated byte code files.
 
 ;; `auto-compile-on-save-mode' recompiles source files when they are
-;; being saved and `auto-compile-on-save-load' does so before they are
+;; being saved and `auto-compile-on-load-mode' does so before they are
 ;; being loaded.  Both modes only _recompile_ a source file when the
 ;; respective byte code file exists and is outdated.  Otherwise (when
 ;; the byte code file doesn't exist or is up-to-date) these modes do
