@@ -572,14 +572,14 @@ Also see the related `auto-compile-on-load-mode'."
   :lighter auto-compile-on-load-mode-lighter
   :group 'auto-compile
   :global t
-  (if auto-compile-on-load-mode
-      (progn
-        (ad-enable-advice 'load    'before 'auto-compile-on-load)
-        (ad-enable-advice 'require 'before 'auto-compile-on-load)
-        (ad-activate 'load)
-        (ad-activate 'require))
-    (ad-disable-advice 'load    'before 'auto-compile-on-load)
-    (ad-disable-advice 'require 'before 'auto-compile-on-load)))
+  (cond (auto-compile-on-load-mode
+         (ad-enable-advice  'load    'before 'auto-compile-on-load)
+         (ad-enable-advice  'require 'before 'auto-compile-on-load)
+         (ad-activate 'load)
+         (ad-activate 'require))
+        (t
+         (ad-disable-advice 'load    'before 'auto-compile-on-load)
+         (ad-disable-advice 'require 'before 'auto-compile-on-load))))
 
 (defvar auto-compile-on-load-mode-lighter ""
   "Mode lighter for Auto-Compile-On-Load Mode.")
