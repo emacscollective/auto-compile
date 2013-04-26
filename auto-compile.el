@@ -444,12 +444,8 @@ pretend the byte code file exists.")
                   (with-current-buffer buf
                     auto-compile-pretend-byte-compiled)))
         (condition-case byte-compile
-            (let ((byte-compile-verbose auto-compile-verbose)
-                  ;; byte-compiling runs theses hooks; disable them.
-                  fundamental-mode-hook
-                  prog-mode-hook
-                  emacs-lisp-mode-hook)
-              (setq success (byte-compile-file file))
+            (let ((byte-compile-verbose auto-compile-verbose))
+              (setq success (packed-byte-compile-file file))
               (when buf
                 (with-current-buffer buf
                   (kill-local-variable auto-compile-pretend-byte-compiled))))
@@ -662,7 +658,7 @@ file would get loaded."
             (when (and (file-exists-p elc)
                        (file-newer-than-file-p el elc))
               (message "Recompiling %s..." el)
-              (byte-compile-file el)
+              (packed-byte-compile-file el)
               (message "Recompiling %s...done" el))
             (when auto-compile-delete-stray-dest
               (setq el* (locate-library file))
