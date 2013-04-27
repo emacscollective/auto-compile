@@ -129,8 +129,7 @@
   :link '(function-link auto-compile-byte-compile)
   :link '(function-link auto-compile-mode))
 
-
-;;; Auto-Compile Mode.
+;;; Auto-Compile-On-Save Mode
 
 ;;;###autoload
 (define-minor-mode auto-compile-mode
@@ -482,8 +481,7 @@ pretend the byte code file exists.")
   (when auto-compile-ding
     (ding)))
 
-
-;;; Mode-Line.
+;;; Mode-Line
 
 (defvar mode-line-auto-compile
   '(auto-compile-mode (:eval (mode-line-auto-compile-control))))
@@ -562,8 +560,7 @@ pretend the byte code file exists.")
     (auto-compile-byte-compile (buffer-file-name) t)
     (force-mode-line-update)))
 
-
-;;; Auto-Compile-On-Load Mode.
+;;; Auto-Compile-On-Load Mode
 
 (define-minor-mode auto-compile-on-load-mode
   "Before loading a library recompile it if it needs recompilation.
