@@ -436,12 +436,11 @@ pretend the byte code file exists.")
           (error
            (auto-compile-handle-compile-error file buf)
            (throw 'auto-compile nil))))
+      (setq dest (byte-compile-dest-file file))
       (when (or start
-                (and (setq dest (byte-compile-dest-file file))
-                     (file-exists-p dest))
-                (when buf
-                  (with-current-buffer buf
-                    auto-compile-pretend-byte-compiled)))
+                (file-exists-p dest)
+                (and buf (with-current-buffer buf
+                           auto-compile-pretend-byte-compiled)))
         (condition-case byte-compile
             (let ((byte-compile-verbose auto-compile-verbose))
               (setq success (packed-byte-compile-file file))
