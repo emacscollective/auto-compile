@@ -225,18 +225,6 @@ found quietly skip this step."
   :group 'auto-compile
   :type 'boolean)
 
-(defcustom auto-compile-delete-stray-dest t
-  "Whether to remove stray byte code files.
-
-If this is non-nil byte code files without a corresponding source
-file are removed as they are encountered.  This happens in the
-functions `auto-compile-on-save' and `toggle-auto-compile'.  The
-main purpose of this functionality is to prevent leftover byte
-code files from shadowing a source or byte code file in a
-directory that comes later in the `load-path'."
-  :group 'auto-compile
-  :type 'boolean)
-
 (defun auto-compile-modify-mode-line (after)
   (let ((format (delete 'mode-line-auto-compile
                         (default-value 'mode-line-format)))
@@ -277,6 +265,18 @@ to include `mode-line-auto-compile'."
 When turning on auto compilation for multiple files at once
 recompile source files even if their byte code file already
 exist and are up-to-date."
+  :group 'auto-compile
+  :type 'boolean)
+
+(defcustom auto-compile-delete-stray-dest t
+  "Whether to remove stray byte code files.
+
+If this is non-nil byte code files without a corresponding source
+file are removed as they are encountered.  This happens in the
+functions `auto-compile-on-save' and `toggle-auto-compile'.  The
+main purpose of this functionality is to prevent leftover byte
+code files from shadowing a source or byte code file in a
+directory that comes later in the `load-path'."
   :group 'auto-compile
   :type 'boolean)
 
