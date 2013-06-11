@@ -281,7 +281,7 @@ exist and are up-to-date."
   :type 'boolean)
 
 (defcustom auto-compile-toggle-deletes-nonlib-dest nil
-  "Whether to remove non-library byte code files when toggling compilation."
+  "Whether to delete non-library byte code files when toggling compilation."
   :group 'auto-compile
   :type 'boolean)
 
