@@ -217,7 +217,7 @@ is made to compile the file as that would obviously fail also."
   :group 'auto-compile
   :type 'boolean)
 
-(defcustom auto-compile-update-autoloads t
+(defcustom auto-compile-update-autoloads nil
   "Whether to update autoloads after compiling.
 
 If no autoload file as specified by `packed-loaddefs-filename' can be
