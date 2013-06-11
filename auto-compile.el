@@ -167,6 +167,8 @@ variant `auto-compile-on-save-mode'.  Also see the related
 (defvar auto-compile-mode-lighter ""
   "Mode lighter for Auto-Compile Mode.")
 
+;;; Options
+
 (defcustom auto-compile-verbose nil
   "Whether to print messages describing progress of byte-compiler."
   :group 'auto-compile
@@ -295,6 +297,8 @@ updating it by recompiling the source).  This can e.g. happen
 when switching git branches."
   :group 'auto-compile
   :type 'boolean)
+
+;;;; Toggle and Perform Compilation
 
 ;;;###autoload
 (defun toggle-auto-compile (file action)
