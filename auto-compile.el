@@ -4,7 +4,7 @@
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Version: 1.0.11
+;; Version: 1.0.12
 ;; Status: beta
 ;; Package-Requires: ((cl-lib "0.2") (packed "0.3.4"))
 ;; Homepage: http://tarsius.github.com/auto-compile
@@ -528,6 +528,26 @@ pretend the byte code file exists.")
 (defun auto-compile-ding ()
   (when auto-compile-ding
     (ding)))
+
+(defadvice save-buffers-kill-emacs
+  (around auto-compile-dont-mark-failed-modified disable)
+  "Set `auto-compile-mark-failed-modified' to nil when killing Emacs.
+If the regular value of this variable is non-nil the user might
+still be asked whether she wants to save modified buffers, which
+she actually did already safe.  This advice ensures she at least
+is only asked once about each such file."
+  (let ((auto-compile-mark-failed-modified nil))
+    ad-do-it))
+
+(defadvice save-buffers-kill-terminal
+  (around auto-compile-dont-mark-failed-modified disable)
+  "Set `auto-compile-mark-failed-modified' to nil when killing Emacs.
+If the regular value of this variable is non-nil the user might
+still be asked whether she wants to save modified buffers, which
+she actually did already safe.  This advice ensures she at least
+is only asked once about each such file."
+  (let ((auto-compile-mark-failed-modified nil))
+    ad-do-it))
 
 ;; REDEFINE autoload-save-buffers defined in autoload.el
 ;; - verify buffers are still live before killing them
