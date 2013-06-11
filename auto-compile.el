@@ -285,6 +285,18 @@ exist and are up-to-date."
   :group 'auto-compile
   :type 'boolean)
 
+(defcustom auto-compile-source-recreate-deletes-dest nil
+  "Whether to delete leftover byte code file when creating source file.
+
+When this is non-nil and saving a source buffer causes the file
+to be created (as opposed to being overwritten) while its byte
+code file already exists (because the source already existed and
+was compiled in the past), then remove the latter (instead of
+updating it by recompiling the source).  This can e.g. happen
+when switching git branches."
+  :group 'auto-compile
+  :type 'boolean)
+
 ;;;###autoload
 (defun toggle-auto-compile (file action)
   "Toggle automatic compilation of an Emacs Lisp source file or files.
@@ -438,7 +450,11 @@ pretend the byte code file exists.")
            (throw 'auto-compile nil))))
       (setq dest (byte-compile-dest-file file))
       (when (or start
-                (file-exists-p dest)
+                (and (file-exists-p dest)
+                     (or (file-exists-p file)
+                         (not auto-compile-source-recreate-deletes-dest)
+                         (prog1 nil
+                           (auto-compile-delete-dest dest))))
                 (and buf (with-current-buffer buf
                            auto-compile-pretend-byte-compiled)))
         (condition-case byte-compile
