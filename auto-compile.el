@@ -130,7 +130,6 @@
   :group 'convenience
   :prefix 'auto-compile
   :link '(function-link toggle-auto-compile)
-  :link '(function-link auto-compile-byte-compile)
   :link '(function-link auto-compile-mode))
 
 ;;; Auto-Compile-On-Save Mode
