@@ -648,7 +648,7 @@ A library needs to be recompiled if the source file is newer than
 it's byte-compile destination.  Without this advice the outdated
 byte code file would be loaded instead.
 
-Also see the related `auto-compile-on-load-mode'."
+Also see the related `auto-compile-on-save-mode'."
   :lighter auto-compile-on-load-mode-lighter
   :group 'auto-compile
   :global t
