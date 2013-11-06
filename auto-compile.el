@@ -185,7 +185,7 @@ of variable `auto-compile-mark-failed-modified' is non-nil."
   :group 'auto-compile
   :type 'boolean)
 
-(defcustom auto-compile-mark-failed-modified t
+(defcustom auto-compile-mark-failed-modified nil
   "Whether to mark buffers which failed to compile as modified.
 
 This serves as a reminder to fix fatal errors.  While useful this
