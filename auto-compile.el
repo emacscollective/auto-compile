@@ -1,4 +1,4 @@
-;;; auto-compile.el --- automatically compile Emacs Lisp libraries
+;;; auto-compile.el --- Automatically compile Emacs Lisp libraries
 
 ;; Copyright (C) 2008-2014  Jonas Bernoulli
 
