@@ -404,7 +404,7 @@ multiple files is toggled as follows:
 
 (defalias 'auto-compile-toggle 'toggle-auto-compile)
 
-(defun auto-compile-toggle-mark-failed-modified (&optional arg)
+(defun auto-compile-toggle-mark-failed-modified ()
   "Toggle whether buffers which failed to compile are marked as modified."
   (interactive)
   (message (concat (if (setq auto-compile-mark-failed-modified
