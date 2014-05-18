@@ -293,7 +293,7 @@ when switching git branches."
   :group 'auto-compile
   :type 'boolean)
 
-;;;; Toggle and Perform Compilation
+;;; Toggle and Perform Compilation
 
 ;;;###autoload
 (defun toggle-auto-compile (file action)
