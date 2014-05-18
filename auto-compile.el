@@ -444,6 +444,7 @@ pretend the byte code file exists.")
               (widen)
               (check-parens))
           (error
+           (message (error-message-string check-parens))
            (auto-compile-handle-compile-error file buf)
            (throw 'auto-compile nil))))
       (setq dest (byte-compile-dest-file file))
