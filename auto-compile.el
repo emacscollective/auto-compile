@@ -216,6 +216,15 @@ found quietly skip this step."
   :group 'auto-compile
   :type 'boolean)
 
+(defcustom auto-compile-inhibit-compile-hook nil
+  "Hook used to inhibit automatic compilation.
+
+This hook is run before automatic compilation takes place, if
+any of the hook functions returns non-nil, then do not compile."
+  :group 'auto-compile
+  :options '(auto-compile-inhibit-compile-detached-git-head)
+  :type 'hook)
+
 (defcustom auto-compile-verbose nil
   "Whether to print messages describing progress of byte-compiler.
 
@@ -452,8 +461,10 @@ pretend the byte code file exists.")
   (with-current-buffer auto-compile-file-buffer
     (cl-incf auto-compile-warnings)))
 
-(defun auto-compile-byte-compile (&optional file start)
+(cl-defun auto-compile-byte-compile (&optional file start)
   "Perform byte compilation for Auto-Compile mode."
+  (when (run-hook-with-args-until-success 'auto-compile-inhibit-compile-hook)
+    (cl-return-from auto-compile-byte-compile))
   (let ((default-directory default-directory)
         dest buf auto-compile-file-buffer success loaddefs)
     (when (and file
@@ -588,6 +599,13 @@ is only asked once about each such file."
            (with-current-buffer buf
              (let ((version-control 'never))
                (save-buffer))))))))
+
+(defun auto-compile-inhibit-compile-detached-git-head ()
+  "Inhibit compiling in Git repositories when `HEAD' is detached.
+This is especially useful during rebase sessions."
+  (with-temp-buffer
+    (call-process "git" nil t nil "symbolic-ref" "HEAD")
+    (equal (buffer-string) "fatal: ref HEAD is not a symbolic ref\n")))
 
 ;;; Mode-Line
 
