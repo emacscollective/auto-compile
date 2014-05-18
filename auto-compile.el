@@ -164,11 +164,6 @@ variant `auto-compile-on-save-mode'.  Also see the related
 
 ;;; Options
 
-(defcustom auto-compile-verbose nil
-  "Whether to print messages describing progress of byte-compiler."
-  :group 'auto-compile
-  :type 'boolean)
-
 (defcustom auto-compile-visit-failed t
   "Whether to visit source files which failed to compile.
 
@@ -218,6 +213,30 @@ is made to compile the file as that would obviously fail also."
 
 If no autoload file as specified by `packed-loaddefs-filename' can be
 found quietly skip this step."
+  :group 'auto-compile
+  :type 'boolean)
+
+(defcustom auto-compile-verbose nil
+  "Whether to print messages describing progress of byte-compiler.
+
+This overrides `byte-compile-verbose' and unlike that does not
+defaults to t; and thus avoids unnecessary echo area messages."
+  :group 'auto-compile
+  :type 'boolean)
+
+(defcustom auto-compile-display-buffer t
+  "Whether to automatically display the *Compile-Log* buffer.
+
+When there are errors then the buffer is always displayed,
+when there are no warnings or errors it is never displayed."
+  :group 'auto-compile
+  :type 'boolean)
+
+(defcustom auto-compile-mode-line-counter nil
+  "Whether to display the number of warnings in the mode line.
+
+This assumes that `auto-compile-use-mode-line' (which see) is
+non-nil."
   :group 'auto-compile
   :type 'boolean)
 
@@ -424,10 +443,19 @@ when being called again. Command `toggle-auto-compile' will also
 pretend the byte code file exists.")
 (make-variable-buffer-local 'auto-compile-pretend-byte-compiled)
 
+(defvar auto-compile-file-buffer nil)
+(defvar-local auto-compile-warnings 0)
+
+(defadvice byte-compile-log-warning
+  (before auto-compile-count-warnings activate)
+  ;; (STRING &optional FILL LEVEL)
+  (with-current-buffer auto-compile-file-buffer
+    (cl-incf auto-compile-warnings)))
+
 (defun auto-compile-byte-compile (&optional file start)
   "Perform byte compilation for Auto-Compile mode."
   (let ((default-directory default-directory)
-        dest buf success loaddefs)
+        dest buf auto-compile-file-buffer success loaddefs)
     (when (and file
                (setq buf (get-file-buffer file))
                (buffer-modified-p buf)
@@ -437,6 +465,9 @@ pretend the byte code file exists.")
       (setq file (buffer-file-name)
             buf  (get-file-buffer file)))
     (setq default-directory (file-name-directory file))
+    (setq auto-compile-file-buffer buf)
+    (with-current-buffer buf
+      (setq auto-compile-warnings 0))
     (catch 'auto-compile
       (when (and auto-compile-check-parens buf)
         (condition-case check-parens
@@ -457,7 +488,9 @@ pretend the byte code file exists.")
                 (and buf (with-current-buffer buf
                            auto-compile-pretend-byte-compiled)))
         (condition-case byte-compile
-            (let ((byte-compile-verbose auto-compile-verbose))
+            (let ((byte-compile-verbose auto-compile-verbose)
+                  (warning-minimum-level
+                   (if auto-compile-display-buffer :warning :error)))
               (setq success (packed-byte-compile-file file))
               (when buf
                 (with-current-buffer buf
@@ -566,6 +599,17 @@ is only asked once about each such file."
         dst)
     (when (and src (setq dst (byte-compile-dest-file src)))
       (list
+       (when (and auto-compile-mode-line-counter
+                  (> auto-compile-warnings 0))
+         (propertize
+          (format "%s" auto-compile-warnings)
+          'help-echo (format "%s compile warnings\nmouse-1 display compile log"
+                             auto-compile-warnings)
+          'face 'error
+          'mouse-face 'mode-line-highlight
+          'local-map (purecopy (make-mode-line-mouse-map
+                                'mouse-1
+                                #'auto-compile-display-log))))
        (cond
         ((file-writable-p dst)
          (propertize
@@ -614,6 +658,14 @@ is only asked once about each such file."
 
 (put 'mode-line-auto-compile 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-auto-compile)
+
+(defun auto-compile-display-log ()
+  "Display the *Compile-Log* buffer."
+  (interactive)
+  (let ((buffer (get-buffer byte-compile-log-buffer)))
+    (if  buffer
+        (pop-to-buffer buffer)
+      (user-error "Buffer %s doesn't exist" byte-compile-log-buffer))))
 
 (defun mode-line-toggle-auto-compile (event)
   "Toggle automatic compilation from the mode-line."
