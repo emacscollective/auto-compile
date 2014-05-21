@@ -450,8 +450,9 @@ pretend the byte code file exists.")
 (defadvice byte-compile-log-warning
   (before auto-compile-count-warnings activate)
   ;; (STRING &optional FILL LEVEL)
-  (with-current-buffer auto-compile-file-buffer
-    (cl-incf auto-compile-warnings)))
+  (when auto-compile-file-buffer
+    (with-current-buffer auto-compile-file-buffer
+      (cl-incf auto-compile-warnings))))
 
 (cl-defun auto-compile-byte-compile (&optional file start)
   "Perform byte compilation for Auto-Compile mode."
