@@ -391,9 +391,9 @@ multiple files is toggled as follows:
                            (and file (file-name-nondirectory file)))
            action)))
   (if (file-regular-p file)
-      (cl-case action
-        (start (auto-compile-byte-compile file t))
-        (quit  (auto-compile-delete-dest (byte-compile-dest-file file))))
+      (pcase action
+        (`start (auto-compile-byte-compile file t))
+        (`quit  (auto-compile-delete-dest (byte-compile-dest-file file))))
     (when (called-interactively-p 'any)
       (--when-let (get-buffer byte-compile-log-buffer)
         (kill-buffer it)))
@@ -514,16 +514,16 @@ pretend the byte code file exists.")
             (error
              (message "Generating loaddefs for %s failed" file)
              (setq loaddefs nil))))
-        (cl-case success
-          (no-byte-compile)
-          ((t) (message "Wrote %s.{%s,%s}%s"
+        (pcase success
+          (`no-byte-compile)
+          (`t (message "Wrote %s.{%s,%s}%s"
                         (file-name-sans-extension
                          (file-name-sans-extension file))
                         (progn (string-match "\\(\\.[^./]+\\)+$" file)
                                (substring (match-string 0 file) 1))
                         (file-name-extension dest)
                         (if loaddefs " (+)" "")))
-          (t   (message "Wrote %s (byte-compiling failed)" file))))
+          (_  (message "Wrote %s (byte-compiling failed)" file))))
       success)))
 
 (defun auto-compile-delete-dest (dest &optional failurep)
