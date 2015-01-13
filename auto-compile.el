@@ -100,6 +100,7 @@
 
 (require 'bytecomp)
 (require 'cl-lib)
+(require 'dash)
 (require 'packed)
 
 (declare-function autoload-rubric "autoload")
@@ -394,10 +395,9 @@ multiple files is toggled as follows:
         (start (auto-compile-byte-compile file t))
         (quit  (auto-compile-delete-dest (byte-compile-dest-file file))))
     (when (called-interactively-p 'any)
-      (let ((log (get-buffer byte-compile-log-buffer)))
-        (when log
-          (kill-buffer log))))
-    (dolist (f (directory-files file t))
+      (--when-let (get-buffer byte-compile-log-buffer)
+        (kill-buffer it)))
+    (dolist (f (directory-files file t)) ; TODO --each
       (cond
        ((file-directory-p f)
         ;; TODO pass the package name if we are certain
@@ -528,10 +528,9 @@ pretend the byte code file exists.")
 
 (defun auto-compile-delete-dest (dest &optional failurep)
   (unless failurep
-    (let ((buf (get-file-buffer (packed-el-file dest))))
-      (when buf
-        (with-current-buffer buf
-          (kill-local-variable 'auto-compile-pretend-byte-compiled)))))
+    (--when-let (get-file-buffer (packed-el-file dest))
+      (with-current-buffer it
+        (kill-local-variable 'auto-compile-pretend-byte-compiled))))
   (condition-case nil
       (when (file-exists-p dest)
         (message "Deleting %s..." dest)
@@ -673,10 +672,9 @@ This is especially useful during rebase sessions."
 (defun auto-compile-display-log ()
   "Display the *Compile-Log* buffer."
   (interactive)
-  (let ((buffer (get-buffer byte-compile-log-buffer)))
-    (if  buffer
-        (pop-to-buffer buffer)
-      (user-error "Buffer %s doesn't exist" byte-compile-log-buffer))))
+  (--if-let (get-buffer byte-compile-log-buffer)
+      (pop-to-buffer it)
+    (user-error "Buffer %s doesn't exist" byte-compile-log-buffer)))
 
 (defun mode-line-toggle-auto-compile (event)
   "Toggle automatic compilation from the mode-line."
