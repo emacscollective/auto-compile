@@ -33,6 +33,7 @@ Then also enable `auto-compile-on-save-mode`.
 
     ;;; init.el --- user init file      -*- no-byte-compile: t -*-
     (setq load-prefer-newer t)
+    (add-to-list 'load-path "/path/to/dash")
     (add-to-list 'load-path "/path/to/packed")
     (add-to-list 'load-path "/path/to/auto-compile")
     (require 'auto-compile)
