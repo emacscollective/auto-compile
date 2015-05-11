@@ -4,7 +4,7 @@
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Package-Requires: ((cl-lib "0.5") (packed "0.3.5"))
+;; Package-Requires: ((cl-lib "0.5") (dash "2.1") (packed "0.3.5"))
 ;; Homepage: https://github.com/tarsius/auto-compile
 ;; Keywords: compile, convenience, lisp
 
