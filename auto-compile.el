@@ -481,7 +481,7 @@ pretend the byte code file exists.")
               (check-parens))
           (error
            (message (error-message-string check-parens))
-           (auto-compile-handle-compile-error file buf)
+           (auto-compile-handle-compile-error file buf start)
            (throw 'auto-compile nil))))
       (setq dest (byte-compile-dest-file file))
       (when (or start
@@ -502,7 +502,7 @@ pretend the byte code file exists.")
                   (kill-local-variable auto-compile-pretend-byte-compiled))))
           (file-error
            (message "Byte-compiling %s failed" file)
-           (auto-compile-handle-compile-error file buf)
+           (auto-compile-handle-compile-error file buf start)
            (setq success nil)))
         (when (and auto-compile-update-autoloads
                    (setq loaddefs (packed-loaddefs-file)))
@@ -541,18 +541,21 @@ pretend the byte code file exists.")
      (auto-compile-ding)
      (message "Deleting %s...failed" dest))))
 
-(defun auto-compile-handle-compile-error (file buf)
+(defun auto-compile-handle-compile-error (file buf &optional start)
   (auto-compile-ding)
-  (let ((dest (byte-compile-dest-file file)))
-    (when (file-exists-p dest)
-      (auto-compile-delete-dest dest t)))
-  (when (or buf
-            (and auto-compile-visit-failed
-                 (setq buf (find-file-noselect file))))
-    (with-current-buffer buf
-      (setq auto-compile-pretend-byte-compiled t)
-      (when auto-compile-mark-failed-modified
-        (set-buffer-modified-p t)))))
+  (let (update)
+    (let ((dest (byte-compile-dest-file file)))
+      (when (file-exists-p dest)
+        (setq update t)
+        (auto-compile-delete-dest dest t)))
+    (when (or buf
+              (and auto-compile-visit-failed
+                   (setq buf (find-file-noselect file))))
+      (with-current-buffer buf
+        (when (or update start)
+          (setq auto-compile-pretend-byte-compiled t))
+        (when auto-compile-mark-failed-modified
+          (set-buffer-modified-p t))))))
 
 (defun auto-compile-handle-autoloads-error (dest)
   (auto-compile-ding)
