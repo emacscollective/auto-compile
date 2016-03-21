@@ -1,6 +1,6 @@
 ;;; auto-compile.el --- automatically compile Emacs Lisp libraries
 
-;; Copyright (C) 2008-2014  Jonas Bernoulli
+;; Copyright (C) 2008-2016  Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
@@ -711,6 +711,7 @@ This is especially useful during rebase sessions."
 
 ;;; Auto-Compile-On-Load Mode
 
+;;;###autoload
 (define-minor-mode auto-compile-on-load-mode
   "Before loading a library recompile it if it needs recompilation.
 
