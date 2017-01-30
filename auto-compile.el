@@ -1,10 +1,10 @@
 ;;; auto-compile.el --- automatically compile Emacs Lisp libraries
 
-;; Copyright (C) 2008-2016  Jonas Bernoulli
+;; Copyright (C) 2008-2017  Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Package-Requires: ((emacs "24.3") (dash "2.12.1") (packed "0.5.3"))
+;; Package-Requires: ((emacs "24.3") (dash "2.13.0") (packed "2.0.0"))
 ;; Homepage: https://github.com/tarsius/auto-compile
 ;; Keywords: compile, convenience, lisp
 
@@ -375,8 +375,8 @@ multiple files is toggled as follows:
   up-to-date.  Do so even for non-library source files.
 
 * Only enter subdirectories for which `packed-ignore-directory-p'
-  returns nil; most importantly don't enter hidden directories or
-  those containing a file named \".nosearch\"."
+  returns nil; i.e. don't enter hidden directories or directories
+  containing a file named \".nosearch\"."
   (interactive
    (let* ((buf  (current-buffer))
           (file (when (eq major-mode 'emacs-lisp-mode)
@@ -410,11 +410,10 @@ multiple files is toggled as follows:
     (when (called-interactively-p 'any)
       (--when-let (get-buffer byte-compile-log-buffer)
         (kill-buffer it)))
-    (dolist (f (directory-files file t)) ; TODO --each
+    (dolist (f (directory-files file t))
       (cond
        ((file-directory-p f)
-        ;; TODO pass the package name if we are certain
-        (unless (packed-ignore-directory-p f nil)
+        (unless (packed-ignore-directory-p f)
           (toggle-auto-compile f action)))
        ((packed-library-p f)
         (let ((dest (byte-compile-dest-file f)))
