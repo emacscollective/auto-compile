@@ -14,7 +14,7 @@ the source file.
 
 Even when using `auto-compile-on-save-mode` it can happen that some
 source file is newer than the respective byte code file, which is a
-problem because by default Emacs load the byte code file even when
+problem because by default Emacs loads the byte code file even when
 the respective source file has been modified more recently.
 
 Starting with Emacs version 24.4, setting `load-prefer-newer` to t
