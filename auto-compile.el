@@ -4,7 +4,7 @@
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
-;; Package-Requires: ((emacs "24.3") (dash "2.13.0") (packed "2.0.0"))
+;; Package-Requires: ((emacs "24.3") (packed "2.0.0"))
 ;; Homepage: https://github.com/tarsius/auto-compile
 ;; Keywords: compile, convenience, lisp
 
@@ -112,7 +112,6 @@
 
 (require 'bytecomp)
 (require 'cl-lib)
-(require 'dash)
 (require 'packed)
 
 (declare-function autoload-rubric "autoload")
@@ -408,8 +407,9 @@ multiple files is toggled as follows:
         (`start (auto-compile-byte-compile file t))
         (`quit  (auto-compile-delete-dest (byte-compile-dest-file file))))
     (when (called-interactively-p 'any)
-      (--when-let (get-buffer byte-compile-log-buffer)
-        (kill-buffer it)))
+      (let ((buffer (get-buffer byte-compile-log-buffer)))
+        (when buffer
+          (kill-buffer buffer))))
     (dolist (f (directory-files file t))
       (cond
        ((file-directory-p f)
@@ -539,9 +539,10 @@ pretend the byte code file exists.")
 
 (defun auto-compile-delete-dest (dest &optional failurep)
   (unless failurep
-    (--when-let (get-file-buffer (packed-el-file dest))
-      (with-current-buffer it
-        (kill-local-variable 'auto-compile-pretend-byte-compiled))))
+    (let ((buffer (get-file-buffer (packed-el-file dest))))
+      (when buffer
+        (with-current-buffer buffer
+          (kill-local-variable 'auto-compile-pretend-byte-compiled)))))
   (condition-case nil
       (when (file-exists-p dest)
         (message "Deleting %s..." dest)
@@ -684,9 +685,10 @@ This is especially useful during rebase sessions."
 (defun auto-compile-display-log ()
   "Display the *Compile-Log* buffer."
   (interactive)
-  (--if-let (get-buffer byte-compile-log-buffer)
-      (pop-to-buffer it)
-    (user-error "Buffer %s doesn't exist" byte-compile-log-buffer)))
+  (let ((buffer (get-buffer byte-compile-log-buffer)))
+    (if buffer
+        (pop-to-buffer buffer)
+      (user-error "Buffer %s doesn't exist" byte-compile-log-buffer))))
 
 (defun mode-line-toggle-auto-compile (event)
   "Toggle automatic compilation from the mode-line."
