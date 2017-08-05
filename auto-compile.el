@@ -5,7 +5,7 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Created: 20080830
 ;; Package-Requires: ((emacs "24.3") (packed "2.0.0"))
-;; Homepage: https://github.com/tarsius/auto-compile
+;; Homepage: https://github.com/emacscollective/auto-compile
 ;; Keywords: compile, convenience, lisp
 
 ;; This file is not part of GNU Emacs.
