@@ -378,8 +378,8 @@ multiple files is toggled as follows:
   containing a file named \".nosearch\"."
   (interactive
    (let* ((buf  (current-buffer))
-          (file (when (eq major-mode 'emacs-lisp-mode)
-                  (buffer-file-name)))
+          (file (and (eq major-mode 'emacs-lisp-mode)
+                     (buffer-file-name)))
           (action
            (cond
             (current-prefix-arg
@@ -391,9 +391,9 @@ multiple files is toggled as follows:
                  'quit
                'start))
             (t
-             (cl-case (read-char-choice
-                       "Toggle automatic compilation (s=tart, q=uit, C-g)? "
-                       '(?s ?q))
+             (pcase (read-char-choice
+                     "Toggle automatic compilation (s=tart, q=uit, C-g)? "
+                     '(?s ?q))
                (?s 'start)
                (?q 'quit))))))
      (list (read-file-name (concat (capitalize (symbol-name action))
@@ -477,8 +477,8 @@ pretend the byte code file exists.")
                (y-or-n-p (format "Save buffer %s first? " (buffer-name buf))))
       (with-current-buffer buf (save-buffer)))
     (unless file
-      (setq file (buffer-file-name)
-            buf  (get-file-buffer file)))
+      (setq file (buffer-file-name))
+      (setq buf  (get-file-buffer file)))
     (setq default-directory (file-name-directory file))
     (setq auto-compile-file-buffer buf)
     (with-current-buffer buf
