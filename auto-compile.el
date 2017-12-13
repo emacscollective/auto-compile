@@ -57,7 +57,7 @@
 
 ;; If you use `package.el' then use something like this:
 ;;
-;;     ;;; init.el --- user init file      -*- no-byte-compile: t -*-
+;;     ;;; init.el --- user init file
 ;;     (setq load-prefer-newer t)
 ;;     (package-initialize)
 ;;     (require 'auto-compile)
@@ -66,7 +66,7 @@
 
 ;; otherwise:
 ;;
-;;     ;;; init.el --- user init file      -*- no-byte-compile: t -*-
+;;     ;;; init.el --- user init file
 ;;     (setq load-prefer-newer t)
 ;;     (add-to-list 'load-path "/path/to/dash")
 ;;     (add-to-list 'load-path "/path/to/packed")
@@ -74,6 +74,13 @@
 ;;     (require 'auto-compile)
 ;;     (auto-compile-on-load-mode)
 ;;     (auto-compile-on-save-mode)
+
+;; You might want to set the file-local value of `no-byte-compile' to
+;; t, e.g. by adding "-*- no-byte-compile: t -*-" (without the quotes)
+;; at the end of the very first line.  That way all user files benefit
+;; from the protection offered by `load-prefer-newer' and the modes
+;; that are defined here, otherwise `~/.emacs.d/init.el' is the only
+;; exception.
 
 ;; Usage
 ;; -----
