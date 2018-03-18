@@ -785,6 +785,7 @@ file would get loaded."
          (when elc
            (auto-compile-delete-dest elc t)))))))
 
+;;; _
 (provide 'auto-compile)
 ;; Local Variables:
 ;; indent-tabs-mode: nil
