@@ -25,11 +25,11 @@ that `auto-compile-on-load-mode` is still required.
 Setup
 -----
 
-To reduce the risk of loading outdated byte code files, you should set
-`load-prefer-newer` and enable `auto-compile-on-load-mode` as early as
-possible.  Then also enable `auto-compile-on-save-mode`.  You should
-also consider not byte-compiling your personal init file, or setting
-`load-prefer-newer` in a system-wide init file.
+To reduce the risk of loading outdated byte code files, you should
+set `load-prefer-newer` and enable `auto-compile-on-load-mode` as
+early as possible.  Then also enable `auto-compile-on-save-mode`.
+You should also consider not byte-compiling your personal init
+file, or setting `load-prefer-newer` in a system-wide init file.
 
 If you use `package.el` then use something like this:
 
@@ -52,10 +52,11 @@ otherwise:
     (auto-compile-on-save-mode)
 
 You might want to set the file-local value of `no-byte-compile` to
-`t`, e.g. by adding `-*- no-byte-compile: t -*-` at the end of the
-very first line.  That way all user files benefit from the protection
-offered by `load-prefer-newer` and the modes that are defined here,
-otherwise `~/.emacs.d/init.el` is the only exception.
+t, e.g. by adding "-*- no-byte-compile: t -*-" (without the quotes)
+at the end of the very first line.  That way all user files benefit
+from the protection offered by `load-prefer-newer` and the modes
+that are defined here, otherwise `~/.emacs.d/init.el` is the only
+exception.
 
 Usage
 -----
