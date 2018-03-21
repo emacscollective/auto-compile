@@ -1,4 +1,4 @@
-;;; auto-compile.el --- automatically compile Emacs Lisp libraries
+;;; auto-compile.el --- automatically compile Emacs Lisp libraries  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2018  Jonas Bernoulli
 
@@ -127,6 +127,7 @@
 (declare-function autoload-generate-file-autoloads "autoload")
 
 (defvar autoload-modified-buffers)
+(defvar warning-minimum-level)
 
 (defvar auto-compile-update-autoloads)
 (defvar auto-compile-use-mode-line)
@@ -384,8 +385,7 @@ multiple files is toggled as follows:
   returns nil; i.e. don't enter hidden directories or directories
   containing a file named \".nosearch\"."
   (interactive
-   (let* ((buf  (current-buffer))
-          (file (and (eq major-mode 'emacs-lisp-mode)
+   (let* ((file (and (eq major-mode 'emacs-lisp-mode)
                      (buffer-file-name)))
           (action
            (cond
@@ -509,7 +509,7 @@ pretend the byte code file exists.")
                            (auto-compile-delete-dest dest))))
                 (and buf (with-current-buffer buf
                            auto-compile-pretend-byte-compiled)))
-        (condition-case byte-compile
+        (condition-case nil
             (let ((byte-compile-verbose auto-compile-verbose)
                   (warning-minimum-level
                    (if auto-compile-display-buffer :warning :error)))
@@ -524,7 +524,7 @@ pretend the byte code file exists.")
         (when (and auto-compile-update-autoloads
                    (setq loaddefs (packed-loaddefs-file)))
           (require 'autoload)
-          (condition-case autoload
+          (condition-case nil
               (packed-with-loaddefs loaddefs
                 (let ((autoload-modified-buffers
                        (list (find-buffer-visiting file))))
