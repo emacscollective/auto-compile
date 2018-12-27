@@ -6,7 +6,7 @@
 ;; Homepage: https://github.com/emacscollective/auto-compile
 ;; Keywords: compile, convenience, lisp
 
-;; Package-Requires: ((emacs "24.4") (packed "2.0.0"))
+;; Package-Requires: ((emacs "24.4") (packed "3.0.0"))
 
 ;; This file is not part of GNU Emacs.
 
