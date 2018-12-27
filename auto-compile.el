@@ -466,8 +466,9 @@ pretend the byte code file exists.")
 (defvar-local auto-compile-warnings 0)
 
 (defadvice byte-compile-log-warning
-  (before auto-compile-count-warnings activate)
-  ;; (STRING &optional FILL LEVEL)
+    (before auto-compile-count-warnings
+            (string &optional fill level)
+            activate)
   (when auto-compile-file-buffer
     (with-current-buffer auto-compile-file-buffer
       (cl-incf auto-compile-warnings))))
@@ -584,7 +585,9 @@ pretend the byte code file exists.")
     (ding)))
 
 (defadvice save-buffers-kill-emacs
-  (around auto-compile-dont-mark-failed-modified disable)
+    (around auto-compile-dont-mark-failed-modified
+            (&optional arg)
+            disable)
   "Set `auto-compile-mark-failed-modified' to nil when killing Emacs.
 If the regular value of this variable is non-nil the user might
 still be asked whether she wants to save modified buffers, which
@@ -594,7 +597,9 @@ is only asked once about each such file."
     ad-do-it))
 
 (defadvice save-buffers-kill-terminal
-  (around auto-compile-dont-mark-failed-modified disable)
+    (around auto-compile-dont-mark-failed-modified
+            (&optional arg)
+            disable)
   "Set `auto-compile-mark-failed-modified' to nil when killing Emacs.
 If the regular value of this variable is non-nil the user might
 still be asked whether she wants to save modified buffers, which
@@ -743,16 +748,20 @@ Also see the related `auto-compile-on-save-mode'."
 (defvar auto-compile-on-load-mode-lighter ""
   "Mode lighter for Auto-Compile-On-Load Mode.")
 
-(defadvice load (before auto-compile-on-load disable)
-  ;; (file &optional noerror nomessage nosuffix must-suffix)
+(defadvice load
+    (before auto-compile-on-load
+            (file &optional noerror nomessage nosuffix must-suffix)
+            disable)
   "Before loading the library recompile it if it needs recompilation.
 It needs recompilation if it is newer than the byte-compile
 destination.  Without this advice the outdated byte-compiled
 file would get loaded."
   (auto-compile-on-load file nosuffix))
 
-(defadvice require (before auto-compile-on-load disable)
-  ;; (feature &optional FILENAME NOERROR)
+(defadvice require
+    (before auto-compile-on-load
+            (feature &optional filename noerror)
+            disable)
   "Before loading the library recompile it if it needs recompilation.
 It needs recompilation if it is newer than the byte-compile
 destination.  Without this advice the outdated byte-compiled
