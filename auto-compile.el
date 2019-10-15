@@ -1,6 +1,6 @@
 ;;; auto-compile.el --- automatically compile Emacs Lisp libraries  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2018  Jonas Bernoulli
+;; Copyright (C) 2008-2019  Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Homepage: https://github.com/emacscollective/auto-compile
@@ -81,6 +81,19 @@
 ;; from the protection offered by `load-prefer-newer' and the modes
 ;; that are defined here, otherwise `~/.emacs.d/init.el' is the only
 ;; exception.
+
+;; If you are using Emacs 27 or later, then these settings should be
+;; placed in `early-init.el', which should never be compiled:
+
+;;     ;;; early-init.el --- early bird  -*- no-byte-compile: t -*-
+;;     (setq load-prefer-newer t)
+;;     (add-to-list 'load-path "/path/to/dash")
+;;     (add-to-list 'load-path "/path/to/packed")
+;;     (add-to-list 'load-path "/path/to/auto-compile")
+;;     (require 'auto-compile)
+;;     (auto-compile-on-load-mode)
+;;     (auto-compile-on-save-mode)
+;;     ;;; early-init.el ends here
 
 ;; Usage
 ;; -----
