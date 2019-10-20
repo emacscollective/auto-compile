@@ -47,7 +47,6 @@ otherwise:
 ```elisp
 ;;; init.el --- user init file
 (setq load-prefer-newer t)
-(add-to-list 'load-path "/path/to/dash")
 (add-to-list 'load-path "/path/to/packed")
 (add-to-list 'load-path "/path/to/auto-compile")
 (require 'auto-compile)
@@ -68,7 +67,6 @@ placed in `early-init.el`, which should never be compiled:
 ```elisp
 ;;; early-init.el --- early bird  -*- no-byte-compile: t -*-
 (setq load-prefer-newer t)
-(add-to-list 'load-path "/path/to/dash")
 (add-to-list 'load-path "/path/to/packed")
 (add-to-list 'load-path "/path/to/auto-compile")
 (require 'auto-compile)
