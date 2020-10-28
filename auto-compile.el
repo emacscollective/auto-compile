@@ -536,8 +536,7 @@ pretend the byte code file exists.")
           (require 'autoload)
           (condition-case nil
               (packed-with-loaddefs loaddefs
-                (let ((autoload-modified-buffers
-                       (list (find-buffer-visiting file))))
+                (let ((autoload-modified-buffers nil))
                   (autoload-generate-file-autoloads
                    file nil generated-autoload-file)))
             (error
@@ -613,17 +612,6 @@ she actually did already safe.  This advice ensures she at least
 is only asked once about each such file."
   (let ((auto-compile-mark-failed-modified nil))
     (funcall fn arg)))
-
-;; REDEFINE autoload-save-buffers defined in autoload.el
-;; - verify buffers are still live before killing them
-(eval-after-load 'autoload
-  '(defun autoload-save-buffers ()
-     (while autoload-modified-buffers
-       (let ((buf (pop autoload-modified-buffers)))
-         (when (buffer-live-p buf)
-           (with-current-buffer buf
-             (let ((version-control 'never))
-               (save-buffer))))))))
 
 (defun auto-compile-inhibit-compile-detached-git-head ()
   "Inhibit compiling in Git repositories when `HEAD' is detached.
