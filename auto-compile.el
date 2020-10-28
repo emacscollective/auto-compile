@@ -1,6 +1,6 @@
 ;;; auto-compile.el --- automatically compile Emacs Lisp libraries  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2019  Jonas Bernoulli
+;; Copyright (C) 2008-2020  Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Homepage: https://github.com/emacscollective/auto-compile
@@ -140,7 +140,6 @@
 (defvar autoload-modified-buffers)
 (defvar warning-minimum-level)
 
-(defvar auto-compile-update-autoloads)
 (defvar auto-compile-use-mode-line)
 
 (defgroup auto-compile nil
