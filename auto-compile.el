@@ -6,7 +6,7 @@
 ;; Homepage: https://github.com/emacscollective/auto-compile
 ;; Keywords: compile, convenience, lisp
 
-;; Package-Requires: ((emacs "25.1") (packed "3.0.0"))
+;; Package-Requires: ((emacs "25.1") (packed "3.0.1"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -538,7 +538,8 @@ pretend the byte code file exists.")
               (packed-with-loaddefs loaddefs
                 (let ((autoload-modified-buffers
                        (list (find-buffer-visiting file))))
-                  (autoload-generate-file-autoloads file)))
+                  (autoload-generate-file-autoloads
+                   file nil generated-autoload-file)))
             (error
              (message "Generating loaddefs for %s failed" file)
              (setq loaddefs nil))))
