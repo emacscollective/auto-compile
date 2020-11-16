@@ -498,8 +498,9 @@ pretend the byte code file exists.")
       (setq buf  (get-file-buffer file)))
     (setq default-directory (file-name-directory file))
     (setq auto-compile-file-buffer buf)
-    (with-current-buffer buf
-      (setq auto-compile-warnings 0))
+    (when buf
+      (with-current-buffer buf
+        (setq auto-compile-warnings 0)))
     (catch 'auto-compile
       (when (and auto-compile-check-parens buf)
         (condition-case check-parens
