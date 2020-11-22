@@ -519,8 +519,8 @@ pretend the byte code file exists.")
                          (prog1 nil
                            (auto-compile-delete-dest dest))))
                 (and (buffer-live-p buf)
-                     (with-current-buffer buf
-                       auto-compile-pretend-byte-compiled)))
+                     (buffer-local-value auto-compile-pretend-byte-compiled
+                                         buf)))
         (condition-case nil
             (let ((byte-compile-verbose auto-compile-verbose)
                   (warning-minimum-level
