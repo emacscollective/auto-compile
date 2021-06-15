@@ -548,12 +548,12 @@ pretend the byte code file exists.")
         (pcase success
           (`no-byte-compile)
           (`t (message "Wrote %s.{%s,%s}%s"
-                        (file-name-sans-extension
-                         (file-name-sans-extension file))
-                        (progn (string-match "\\(\\.[^./]+\\)+$" file)
-                               (substring (match-string 0 file) 1))
-                        (file-name-extension dest)
-                        (if loaddefs " (+)" "")))
+                       (file-name-sans-extension
+                        (file-name-sans-extension file))
+                       (progn (string-match "\\(\\.[^./]+\\)+$" file)
+                              (substring (match-string 0 file) 1))
+                       (file-name-extension dest)
+                       (if loaddefs " (+)" "")))
           (_  (message "Wrote %s (byte-compiling failed)" file))))
       success)))
 
