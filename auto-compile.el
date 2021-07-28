@@ -221,6 +221,19 @@ that."
   :group 'auto-compile
   :type 'boolean)
 
+(defcustom auto-compile-native-compile nil
+  "Whether to asynchronously native compile files on save.
+
+On load this happens regardless of this option because loading
+byte-code triggers native compilation.  On save it is likely
+wasteful to native compile because one usually saves many times
+without reloading the (byte or native) compiled code even just
+once (evaluating the buffer is more useful during development
+because it results in better backtraces)."
+  :package-version '(auto-compile . "1.6.3")
+  :group 'auto-compile
+  :type 'boolean)
+
 (defcustom auto-compile-check-parens t
   "Whether to check for unbalanced parentheses before compiling.
 
@@ -527,6 +540,13 @@ pretend the byte code file exists.")
                   (warning-minimum-level
                    (if auto-compile-display-buffer :warning :error)))
               (setq success (packed-byte-compile-file file))
+              (when (and success
+                         auto-compile-native-compile
+                         (featurep 'native-compile)
+                         (fboundp 'native-comp-available-p)
+                         (native-comp-available-p))
+                (let ((warning-minimum-level :error))
+                  (native-compile-async file)))
               (when (buffer-live-p buf)
                 (with-current-buffer buf
                   (kill-local-variable auto-compile-pretend-byte-compiled))))
