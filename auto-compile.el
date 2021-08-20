@@ -247,7 +247,7 @@ is made to compile the file as that would obviously fail also."
 (defcustom auto-compile-update-autoloads nil
   "Whether to update autoloads after compiling.
 
-If no autoload file as specified by `packed-loaddefs-filename' can be
+If no autoload file as specified by `packed-loaddefs-file' can be
 found quietly skip this step."
   :group 'auto-compile
   :type 'boolean)
