@@ -665,7 +665,13 @@ This is especially useful during rebase sessions."
           'mouse-face 'mode-line-highlight
           'local-map (make-mode-line-mouse-map
                       'mouse-1 #'auto-compile-display-log)))
-        (t ":"))
+        (t
+         (propertize
+          ":"
+          'help-echo "No compile warnings\nmouse-1 display compile log"
+          'mouse-face 'mode-line-highlight
+          'local-map (make-mode-line-mouse-map
+                      'mouse-1 #'auto-compile-display-log))))
        (cond
         ((file-writable-p dst)
          (propertize
