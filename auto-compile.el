@@ -662,9 +662,8 @@ This is especially useful during rebase sessions."
                              auto-compile-warnings)
           'face 'error
           'mouse-face 'mode-line-highlight
-          'local-map (purecopy (make-mode-line-mouse-map
-                                'mouse-1
-                                #'auto-compile-display-log))))
+          'local-map (make-mode-line-mouse-map
+                      'mouse-1 #'auto-compile-display-log)))
        (cond
         ((file-writable-p dst)
          (propertize
@@ -683,33 +682,29 @@ This is especially useful during rebase sessions."
           "!"
           'help-echo "Failed to byte-compile updating\nmouse-1 retry"
           'mouse-face 'mode-line-highlight
-          'local-map (purecopy (make-mode-line-mouse-map
-                                'mouse-1
-                                #'auto-compile-mode-line-byte-compile))))
+          'local-map (make-mode-line-mouse-map
+                      'mouse-1 #'auto-compile-mode-line-byte-compile)))
         ((not (file-exists-p dst))
          (propertize
           "%%"
           'help-echo "Byte-compiled file doesn't exist\nmouse-1 create"
           'mouse-face 'mode-line-highlight
-          'local-map (purecopy (make-mode-line-mouse-map
-                                'mouse-1
-                                #'mode-line-toggle-auto-compile))))
+          'local-map (make-mode-line-mouse-map
+                      'mouse-1 #'mode-line-toggle-auto-compile)))
         ((file-newer-than-file-p src dst)
          (propertize
           "*"
           'help-echo "Byte-compiled file needs updating\nmouse-1 update"
           'mouse-face 'mode-line-highlight
-          'local-map (purecopy (make-mode-line-mouse-map
-                                'mouse-1
-                                #'auto-compile-mode-line-byte-compile))))
+          'local-map (make-mode-line-mouse-map
+                      'mouse-1 #'auto-compile-mode-line-byte-compile)))
         (t
          (propertize
           "-"
           'help-echo "Byte-compiled file is up-to-date\nmouse-1 remove"
           'mouse-face 'mode-line-highlight
-          'local-map (purecopy (make-mode-line-mouse-map
-                                'mouse-1
-                                #'mode-line-toggle-auto-compile)))))))))
+          'local-map (make-mode-line-mouse-map
+                      'mouse-1 #'mode-line-toggle-auto-compile))))))))
 
 (defun auto-compile-display-log ()
   "Display the *Compile-Log* buffer."
