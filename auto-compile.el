@@ -171,8 +171,7 @@ variant `auto-compile-on-save-mode'.  Also see the related
     (user-error "This mode only makes sense with emacs-lisp-mode"))
   (if auto-compile-mode
       (add-hook  'after-save-hook 'auto-compile-byte-compile nil t)
-    (remove-hook 'after-save-hook 'auto-compile-byte-compile t))
-  (auto-compile-modify-mode-line auto-compile-use-mode-line))
+    (remove-hook 'after-save-hook 'auto-compile-byte-compile t)))
 
 ;;;###autoload
 (define-globalized-minor-mode auto-compile-on-save-mode
@@ -289,14 +288,24 @@ non-nil."
   (let ((format (delete 'mode-line-auto-compile
                         (default-value 'mode-line-format)))
         cell)
-    (when (and after auto-compile-mode
+    (when (and after
                (setq cell (member after format)))
       (push 'mode-line-auto-compile (cdr cell)))
     (set-default 'mode-line-format format)))
 
+(defun auto-compile-use-mode-line-set (_ignored value)
+  "Set `auto-compile-use-mode-line' and modify `mode-line-format'.
+VALUE is the element in `mode-line-format' after which our
+element is inserted. _IGNORED is of no relevance."
+  (setq-default auto-compile-use-mode-line value)
+  (auto-compile-modify-mode-line value))
+
 (defcustom auto-compile-use-mode-line
   (car (memq 'mode-line-modified (default-value 'mode-line-format)))
-  "Whether to show information about the byte code file in the mode line.
+  "Whether and where to show byte-code information in the mode line.
+
+Set this variable using the Custom interface or using the function
+`auto-compile-use-mode-line-set'.
 
 This works by inserting `mode-line-auto-compile' into the default
 value of `mode-line-format' after the construct (usually a symbol)
@@ -311,9 +320,7 @@ variable that is itself a member of `mode-line-format' then you
 have to set this option to nil and manually modify that variable
 to include `mode-line-auto-compile'."
   :group 'auto-compile
-  :set (lambda (symbol value)
-         (set-default symbol value)
-         (auto-compile-modify-mode-line value))
+  :set #'auto-compile-use-mode-line-set
   :type '(choice (const :tag "don't insert" nil)
                  (const :tag "after mode-line-modified" mode-line-modified)
                  (const :tag "after mode-line-remote" mode-line-remote)
