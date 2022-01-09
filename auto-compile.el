@@ -314,7 +314,7 @@ element is inserted. _IGNORED is of no relevance."
   (auto-compile-modify-mode-line value))
 
 (defcustom auto-compile-use-mode-line
-  (car (auto-compile--tree-member 'mode-line-modified
+  (car (auto-compile--tree-member 'mode-line-remote
                                   (default-value 'mode-line-format)))
   "Whether and where to show byte-code information in the mode line.
 
