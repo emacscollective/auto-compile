@@ -284,11 +284,22 @@ non-nil."
   :group 'auto-compile
   :type 'boolean)
 
+(defun auto-compile--tree-member (elt tree)
+  ;; Also known as keycast--tree-member.
+  (or (member elt tree)
+      (catch 'found
+        (dolist (sub tree)
+          (when-let ((found (and (listp sub)
+                                 (auto-compile--tree-member elt sub))))
+            (throw 'found found))))))
+
 (defun auto-compile-modify-mode-line (after)
-  (let ((format (delete 'mode-line-auto-compile
-                        (default-value 'mode-line-format))))
+  (let ((format (default-value 'mode-line-format)))
+    (when-let ((mem (auto-compile--tree-member 'mode-line-auto-compile format)))
+      (setcar mem (cadr mem))
+      (setcdr mem (cddr mem)))
     (when after
-      (if-let ((mem (member after format)))
+      (if-let ((mem (auto-compile--tree-member after format)))
           (push 'mode-line-auto-compile (cdr mem))
         (message "Could not insert `%s' into `%s'"
                  'mode-line-auto-compile
@@ -303,7 +314,8 @@ element is inserted. _IGNORED is of no relevance."
   (auto-compile-modify-mode-line value))
 
 (defcustom auto-compile-use-mode-line
-  (car (memq 'mode-line-modified (default-value 'mode-line-format)))
+  (car (auto-compile--tree-member 'mode-line-modified
+                                  (default-value 'mode-line-format)))
   "Whether and where to show byte-code information in the mode line.
 
 Set this variable using the Custom interface or using the function
