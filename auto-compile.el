@@ -286,11 +286,13 @@ non-nil."
 
 (defun auto-compile-modify-mode-line (after)
   (let ((format (delete 'mode-line-auto-compile
-                        (default-value 'mode-line-format)))
-        cell)
-    (when (and after
-               (setq cell (member after format)))
-      (push 'mode-line-auto-compile (cdr cell)))
+                        (default-value 'mode-line-format))))
+    (when after
+      (if-let ((mem (member after format)))
+          (push 'mode-line-auto-compile (cdr mem))
+        (message "Could not insert `%s' into `%s'"
+                 'mode-line-auto-compile
+                 'mode-line-format)))
     (set-default 'mode-line-format format)))
 
 (defun auto-compile-use-mode-line-set (_ignored value)
