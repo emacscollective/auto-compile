@@ -654,8 +654,9 @@ This is especially useful during rebase sessions."
         dst)
     (when (and src (setq dst (byte-compile-dest-file src)))
       (list
-       (when (and auto-compile-mode-line-counter
-                  (> auto-compile-warnings 0))
+       (cond
+        ((not auto-compile-mode-line-counter) "")
+        ((> auto-compile-warnings 0)
          (propertize
           (format "%s" auto-compile-warnings)
           'help-echo (format "%s compile warnings\nmouse-1 display compile log"
@@ -664,6 +665,7 @@ This is especially useful during rebase sessions."
           'mouse-face 'mode-line-highlight
           'local-map (make-mode-line-mouse-map
                       'mouse-1 #'auto-compile-display-log)))
+        (t ""))
        (cond
         ((file-writable-p dst)
          (propertize
