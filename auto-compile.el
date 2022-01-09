@@ -688,7 +688,7 @@ This is especially useful during rebase sessions."
               (not (file-exists-p dst)))
          (propertize
           "!"
-          'help-echo "Failed to byte-compile updating\nmouse-1 retry"
+          'help-echo "Failed to byte-compile\nmouse-1 retry"
           'mouse-face 'mode-line-highlight
           'local-map (make-mode-line-mouse-map
                       'mouse-1 #'auto-compile-mode-line-byte-compile)))
