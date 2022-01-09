@@ -665,7 +665,7 @@ This is especially useful during rebase sessions."
           'mouse-face 'mode-line-highlight
           'local-map (make-mode-line-mouse-map
                       'mouse-1 #'auto-compile-display-log)))
-        (t ""))
+        (t ":"))
        (cond
         ((file-writable-p dst)
          (propertize
