@@ -7,7 +7,7 @@
 ;; Keywords: compile, convenience, lisp
 
 ;; Package-Requires: ((emacs "25.1") (packed "3.0.3"))
-
+;; Package-Version: 1.7.1
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;; This file is free software; you can redistribute it and/or modify
