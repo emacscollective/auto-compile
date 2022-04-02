@@ -170,8 +170,8 @@ variant `auto-compile-on-save-mode'.  Also see the related
   (unless (derived-mode-p 'emacs-lisp-mode)
     (user-error "This mode only makes sense with emacs-lisp-mode"))
   (if auto-compile-mode
-      (add-hook  'after-save-hook 'auto-compile-byte-compile nil t)
-    (remove-hook 'after-save-hook 'auto-compile-byte-compile t)))
+      (add-hook  'after-save-hook #'auto-compile-byte-compile nil t)
+    (remove-hook 'after-save-hook #'auto-compile-byte-compile t)))
 
 ;;;###autoload
 (define-globalized-minor-mode auto-compile-on-save-mode
@@ -486,7 +486,7 @@ multiple files is toggled as follows:
              (not (file-exists-p (packed-el-file f))))
         (auto-compile-delete-dest f))))))
 
-(defalias 'auto-compile-toggle 'toggle-auto-compile)
+(defalias 'auto-compile-toggle #'toggle-auto-compile)
 
 (defun auto-compile-toggle-mark-failed-modified ()
   "Toggle whether buffers which failed to compile are marked as modified."
