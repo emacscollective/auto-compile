@@ -564,6 +564,7 @@ pretend the byte code file exists.")
               (when (and success
                          auto-compile-native-compile
                          (featurep 'native-compile)
+                         (fboundp 'native-compile-async)
                          (fboundp 'native-comp-available-p)
                          (native-comp-available-p))
                 (let ((warning-minimum-level :error))
