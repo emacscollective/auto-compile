@@ -6,7 +6,7 @@
 ;; Homepage: https://github.com/emacscollective/auto-compile
 ;; Keywords: compile, convenience, lisp
 
-;; Package-Requires: ((emacs "25.1") (packed "3.0.3"))
+;; Package-Requires: ((emacs "25.1") (compat "28.1.1.0") (packed "3.0.3"))
 ;; Package-Version: 1.7.1
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -131,6 +131,7 @@
 
 (require 'bytecomp)
 (require 'cl-lib)
+(require 'compat)
 (require 'packed)
 
 (declare-function autoload-rubric "autoload")

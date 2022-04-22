@@ -5,7 +5,8 @@ PKG = auto-compile
 ELS   = $(PKG).el
 ELCS  = $(ELS:.el=.elc)
 
-DEPS  = packed
+DEPS  = compat
+DEPS += packed
 
 EMACS      ?= emacs
 EMACS_ARGS ?=
