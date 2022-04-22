@@ -133,6 +133,8 @@
 (require 'compat)
 (require 'packed)
 
+(eval-when-compile (require 'subr-x))
+
 (declare-function autoload-rubric "autoload")
 (declare-function autoload-find-destination "autoload")
 (declare-function autoload-file-load-name "autoload")
