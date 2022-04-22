@@ -456,8 +456,8 @@ multiple files is toggled as follows:
            action)))
   (if (file-regular-p file)
       (pcase action
-        (`start (auto-compile-byte-compile file t))
-        (`quit  (auto-compile-delete-dest (byte-compile-dest-file file))))
+        ('start (auto-compile-byte-compile file t))
+        ('quit  (auto-compile-delete-dest (byte-compile-dest-file file))))
     (when (called-interactively-p 'any)
       (let ((buffer (get-buffer byte-compile-log-buffer)))
         (when (buffer-live-p buffer)
@@ -588,8 +588,8 @@ pretend the byte code file exists.")
              (message "Generating loaddefs for %s failed" file)
              (setq loaddefs nil))))
         (pcase success
-          (`no-byte-compile)
-          (`t (message "Wrote %s.{%s,%s}%s"
+          ('no-byte-compile)
+          ('t (message "Wrote %s.{%s,%s}%s"
                        (file-name-sans-extension
                         (file-name-sans-extension file))
                        (progn (string-match "\\(\\.[^./]+\\)+$" file)
