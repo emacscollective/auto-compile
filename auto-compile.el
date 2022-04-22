@@ -483,7 +483,7 @@ multiple files is toggled as follows:
              (string-match (packed-el-regexp) f))
         (auto-compile-delete-dest (byte-compile-dest-file f)))
        ((and auto-compile-delete-stray-dest
-             (string-match "\\.elc$" f)
+             (equal (file-name-extension f) "elc")
              (not (file-exists-p (packed-el-file f))))
         (auto-compile-delete-dest f))))))
 
