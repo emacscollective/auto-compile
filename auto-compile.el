@@ -641,14 +641,15 @@ pretend the byte code file exists.")
     (ding)))
 
 (define-advice save-buffers-kill-emacs
-    (:around (fn &optional arg) auto-compile)
+    ;; <= 28 (&optional arg); >= 29 (&optional arg restart)
+    (:around (fn &rest args) auto-compile)
   "Bind `auto-compile-mark-failed-modified' to nil when killing Emacs.
 If the regular value of this variable is non-nil the user might
 still be asked whether she wants to save modified buffers, which
 she actually did already safe.  This advice ensures she at least
 is only asked once about each such file."
   (let ((auto-compile-mark-failed-modified nil))
-    (funcall fn arg)))
+    (apply fn args)))
 
 (define-advice save-buffers-kill-terminal
     (:around (fn &optional arg) auto-compile)
