@@ -580,7 +580,8 @@ pretend the byte code file exists.")
            (setq success nil)))
         (when (and auto-compile-update-autoloads
                    (setq loaddefs (packed-loaddefs-file)))
-          (require 'autoload)
+          (with-suppressed-warnings ((obsolete autoload))
+            (require 'autoload))
           (condition-case nil
               (packed-with-loaddefs loaddefs
                 (let ((autoload-modified-buffers nil))
