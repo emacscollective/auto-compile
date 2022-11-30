@@ -7,7 +7,7 @@
 ;; Keywords: compile convenience lisp
 
 ;; Package-Version: 1.7.2.50-git
-;; Package-Requires: ((emacs "25.1") (compat "28.1.1.0") (packed "3.0.3"))
+;; Package-Requires: ((emacs "25.1") (compat "28.1.1.0"))
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -69,7 +69,6 @@
 ;;
 ;;     ;;; init.el --- user init file
 ;;     (setq load-prefer-newer t)
-;;     (add-to-list 'load-path "/path/to/packed")
 ;;     (add-to-list 'load-path "/path/to/auto-compile")
 ;;     (require 'auto-compile)
 ;;     (auto-compile-on-load-mode)
@@ -86,7 +85,6 @@
 
 ;;     ;;; early-init.el --- early bird  -*- no-byte-compile: t -*-
 ;;     (setq load-prefer-newer t)
-;;     (add-to-list 'load-path "/path/to/packed")
 ;;     (add-to-list 'load-path "/path/to/auto-compile")
 ;;     (require 'auto-compile)
 ;;     (auto-compile-on-load-mode)
@@ -131,7 +129,6 @@
 (require 'bytecomp)
 (require 'cl-lib)
 (require 'compat)
-(require 'packed)
 
 (eval-when-compile (require 'subr-x))
 
@@ -344,6 +341,21 @@ to ensure changes to macros are picked up."
   :group 'auto-compile
   :type 'boolean)
 
+(defcustom auto-compile-predicate-function 'auto-compile-source-file-p
+  "Function used to determine if a file should be compiled.
+
+The default, `auto-compile-source-file-p', returns t for all
+files whose filename ends with the \".el\" suffix, optionally
+followed by one of the suffixes in `load-file-rep-suffixes'.
+
+Another useful value is `elx-library-p' from the `elx' package,
+which additionally checks whether the file provides the feature
+that matches its filename."
+  :group 'auto-compile
+  :type '(choice (const auto-compile-source-file-p)
+                 (const elx-library-p)
+                 function))
+
 (defcustom auto-compile-delete-stray-dest t
   "Whether to remove stray byte code files.
 
@@ -407,10 +419,10 @@ multiple files is toggled as follows:
   removed.  If `auto-compile-deletes-stray-dest' is non-nil this
   even includes byte code files for which no source file exists.
 
-* When _creating_ byte code files only do so for source files
-  that are actual libraries.  Source files that provide the
-  correct feature are considered to be libraries; see
-  `packed-library-p'.
+* When _creating_ byte code files then only compile files for
+  which `auto-compile-predicate-function' returns non-nil.  By
+  default that includes all files that look like source files,
+  based solely on their filenames.
 
 * Note that non-libraries can still be automatically compiled,
   you just cannot _recursively_ turn on automatic compilation
@@ -420,9 +432,8 @@ multiple files is toggled as follows:
   affected source files even when the respective source files are
   up-to-date.  Do so even for non-library source files.
 
-* Only enter subdirectories for which `packed-ignore-directory-p'
-  returns nil; i.e. don't enter hidden directories or directories
-  containing a file named \".nosearch\"."
+* Compile libraries in subdirectories, except for files in hidden
+  directories and directories containing a file named \".nosearch\"."
   (interactive
    (let* ((file (and (eq major-mode 'emacs-lisp-mode)
                      (buffer-file-name)))
@@ -459,9 +470,11 @@ multiple files is toggled as follows:
     (dolist (f (directory-files file t))
       (cond
        ((file-directory-p f)
-        (unless (packed-ignore-directory-p f)
+        (unless (or (string-prefix-p "." (file-name-nondirectory
+                                          (directory-file-name f)))
+                    (file-exists-p (expand-file-name ".nosearch" f)))
           (toggle-auto-compile f action)))
-       ((packed-library-p f)
+       ((funcall auto-compile-predicate-function f)
         (let ((dest (byte-compile-dest-file f)))
           (if (eq action 'start)
               (and (file-exists-p f)
@@ -473,11 +486,11 @@ multiple files is toggled as follows:
             (auto-compile-delete-dest dest))))
        ((and auto-compile-toggle-deletes-nonlib-dest
              (eq action 'quit)
-             (string-match (packed-el-regexp) f))
+             (auto-compile-source-file-p f))
         (auto-compile-delete-dest (byte-compile-dest-file f)))
        ((and auto-compile-delete-stray-dest
              (equal (file-name-extension f) "elc")
-             (not (file-exists-p (packed-el-file f))))
+             (not (auto-compile--byte-compile-source-file f t)))
         (auto-compile-delete-dest f))))))
 
 (defalias 'auto-compile-toggle #'toggle-auto-compile)
@@ -490,6 +503,26 @@ multiple files is toggled as follows:
                        "Mark "
                      "Don't mark ")
                    "files that failed to compile as modified")))
+
+(defun auto-compile-source-file-p (file)
+  "Return non-nil if FILE ends with the suffix \".el\".
+Optionaly that suffix may be followed by one listed in
+`load-file-rep-suffixes'."
+  (string-match-p (format "\\.el%s\\'" (regexp-opt load-file-rep-suffixes))
+                  file))
+
+(defun auto-compile--byte-compile-source-file (file &optional must-exist)
+  (let ((standard (concat (file-name-sans-extension
+                           (if (fboundp 'byte-compiler-base-file-name)
+                               (byte-compiler-base-file-name file)
+                             (file-name-sans-extension file)))
+                          ".el"))
+        (suffixes load-file-rep-suffixes)
+        (file nil))
+    (while (and (not file) suffixes)
+      (unless (file-exists-p (setq file (concat standard (pop suffixes))))
+        (setq file nil)))
+    (or file (and (not must-exist) standard))))
 
 (defvar-local auto-compile-pretend-byte-compiled nil
   "Whether to try again to compile this file after a failed attempt.
@@ -554,7 +587,7 @@ pretend the byte code file exists.")
             (let ((byte-compile-verbose auto-compile-verbose)
                   (warning-minimum-level
                    (if auto-compile-display-buffer :warning :error)))
-              (setq success (packed-byte-compile-file file))
+              (setq success (auto-compile--byte-compile-file file))
               (when (and success
                          auto-compile-native-compile
                          (featurep 'native-compile)
@@ -581,9 +614,16 @@ pretend the byte code file exists.")
           (_  (message "Wrote %s (byte-compiling failed)" file))))
       success)))
 
+(defun auto-compile--byte-compile-file (file)
+  (let ((after-change-major-mode-hook nil)
+        (prog-mode-hook nil)
+        (emacs-lisp-mode-hook nil))
+  (byte-compile-file file)))
+
 (defun auto-compile-delete-dest (dest &optional failurep)
   (unless failurep
-    (let ((buffer (get-file-buffer (packed-el-file dest))))
+    (let ((buffer (get-file-buffer
+                   (auto-compile--byte-compile-source-file dest))))
       (when (buffer-live-p buffer)
         (with-current-buffer buffer
           (kill-local-variable 'auto-compile-pretend-byte-compiled)))))
@@ -788,13 +828,13 @@ Without this advice the outdated source file would get loaded."
     (let ((auto-compile--loading (cons file auto-compile--loading))
           byte-compile-verbose el elc el*)
       (condition-case nil
-          (when (setq el (packed-locate-library file nosuffix))
+          (when (setq el (auto-compile--locate-library file nosuffix))
             (setq elc (byte-compile-dest-file el))
             (when (and (file-exists-p elc)
                        (file-writable-p elc)
                        (file-newer-than-file-p el elc))
               (message "Recompiling %s..." el)
-              (packed-byte-compile-file el)
+              (auto-compile--byte-compile-file el)
               (message "Recompiling %s...done" el))
             (when auto-compile-delete-stray-dest
               (setq el* (locate-library file))
@@ -805,6 +845,13 @@ Without this advice the outdated source file would get loaded."
          (message "Recompiling %s...failed" el)
          (when elc
            (auto-compile-delete-dest elc t)))))))
+
+(defun auto-compile--locate-library (library nosuffix)
+  (locate-file (substitute-in-file-name library)
+               load-path
+               (if nosuffix
+                   load-file-rep-suffixes
+                 (mapcar (lambda (s) (concat ".el" s)) load-file-rep-suffixes))))
 
 ;;; _
 (provide 'auto-compile)
