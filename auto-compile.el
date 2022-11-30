@@ -245,14 +245,6 @@ is made to compile the file as that would obviously fail also."
   :group 'auto-compile
   :type 'boolean)
 
-(defcustom auto-compile-update-autoloads nil
-  "Whether to update autoloads after compiling.
-
-If no autoload file as specified by `packed-loaddefs-file' can be
-found quietly skip this step."
-  :group 'auto-compile
-  :type 'boolean)
-
 (defcustom auto-compile-inhibit-compile-hook nil
   "Hook used to inhibit automatic compilation.
 
@@ -524,7 +516,7 @@ pretend the byte code file exists.")
   (when (run-hook-with-args-until-success 'auto-compile-inhibit-compile-hook)
     (cl-return-from auto-compile-byte-compile))
   (let ((default-directory default-directory)
-        dest buf auto-compile-file-buffer success loaddefs)
+        dest buf auto-compile-file-buffer success)
     (when (and file
                (setq buf (get-file-buffer file))
                (buffer-modified-p buf)
@@ -578,27 +570,14 @@ pretend the byte code file exists.")
            (message "Byte-compiling %s failed" file)
            (auto-compile-handle-compile-error file buf start)
            (setq success nil)))
-        (when (and auto-compile-update-autoloads
-                   (setq loaddefs (packed-loaddefs-file)))
-          (with-suppressed-warnings ((obsolete autoload))
-            (require 'autoload))
-          (condition-case nil
-              (packed-with-loaddefs loaddefs
-                (let ((autoload-modified-buffers nil))
-                  (autoload-generate-file-autoloads
-                   file nil generated-autoload-file)))
-            (error
-             (message "Generating loaddefs for %s failed" file)
-             (setq loaddefs nil))))
         (pcase success
           ('no-byte-compile)
-          ('t (message "Wrote %s.{%s,%s}%s"
+          ('t (message "Wrote %s.{%s,%s}"
                        (file-name-sans-extension
                         (file-name-sans-extension file))
                        (progn (string-match "\\(\\.[^./]+\\)+$" file)
                               (substring (match-string 0 file) 1))
-                       (file-name-extension dest)
-                       (if loaddefs " (+)" "")))
+                       (file-name-extension dest)))
           (_  (message "Wrote %s (byte-compiling failed)" file))))
       success)))
 
