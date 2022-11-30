@@ -633,10 +633,6 @@ pretend the byte code file exists.")
         (when auto-compile-mark-failed-modified
           (set-buffer-modified-p t))))))
 
-(defun auto-compile-handle-autoloads-error (dest)
-  (auto-compile-ding)
-  (packed-remove-autoloads dest nil))
-
 (defun auto-compile-ding ()
   (when auto-compile-ding
     (ding)))
