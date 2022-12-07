@@ -512,9 +512,8 @@ Optionaly that suffix may be followed by one listed in
                   file))
 
 (defun auto-compile--byte-compile-source-file (file &optional must-exist)
-  (let ((standard (concat (file-name-sans-extension
-                           (byte-compiler-base-file-name file)
-                          ".el"))
+  (let ((standard (file-name-with-extension
+                   (byte-compiler-base-file-name file) ".el"))
         (suffixes load-file-rep-suffixes)
         (file nil))
     (while (and (not file) suffixes)
