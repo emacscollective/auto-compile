@@ -489,7 +489,7 @@ multiple files is toggled as follows:
              (auto-compile-source-file-p f))
         (auto-compile-delete-dest (byte-compile-dest-file f)))
        ((and auto-compile-delete-stray-dest
-             (equal (file-name-extension f) "elc")
+             (string-match "\\.elc$" f)
              (not (auto-compile--byte-compile-source-file f t)))
         (auto-compile-delete-dest f))))))
 
