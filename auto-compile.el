@@ -7,7 +7,7 @@
 ;; Keywords: compile convenience lisp
 
 ;; Package-Version: 1.7.2.50-git
-;; Package-Requires: ((emacs "25.1") (compat "28.1.1.0"))
+;; Package-Requires: ((emacs "25.1"))
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -128,7 +128,6 @@
 
 (require 'bytecomp)
 (require 'cl-lib)
-(require 'compat)
 
 (eval-when-compile (require 'subr-x))
 
