@@ -105,6 +105,6 @@ automatic compilation under certain circumstances; e.g. when HEAD
 is detached inside a Git repository (useful during rebase sessions).
 
 #+html: <br><br>
-#+html: <a href="https://github.com/emacscollective/auto-compile/actions/workflows/compile.yml"><img alt="GNU Emacs" src="https://github.com/emacscollective/auto-compile/actions/workflows/compile.yml/badge.svg"/></a>
+#+html: <a href="https://github.com/emacscollective/auto-compile/actions/workflows/compile.yml"><img alt="Compile" src="https://github.com/emacscollective/auto-compile/actions/workflows/compile.yml/badge.svg"/></a>
 #+html: <a href="https://stable.melpa.org/#/auto-compile"><img alt="MELPA Stable" src="https://stable.melpa.org/packages/auto-compile-badge.svg"/></a>
 #+html: <a href="https://melpa.org/#/auto-compile"><img alt="MELPA" src="https://melpa.org/packages/auto-compile-badge.svg"/></a>
