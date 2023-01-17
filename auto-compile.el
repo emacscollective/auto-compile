@@ -680,6 +680,20 @@ This is especially useful during rebase sessions."
     (call-process "git" nil t nil "symbolic-ref" "HEAD")
     (equal (buffer-string) "fatal: ref HEAD is not a symbolic ref\n")))
 
+(if (fboundp 'file-name-with-extension)
+    ;; Added in Emacs 28.1.
+    (defalias 'auto-compile--file-name-with-extension 'file-name-with-extension)
+  (defun auto-compile--file-name-with-extension (filename extension)
+    (let ((extn (string-trim-left extension "[.]")))
+      (cond ((string-empty-p filename)
+             (error "Empty filename"))
+            ((string-empty-p extn)
+             (error "Malformed extension: %s" extension))
+            ((directory-name-p filename)
+             (error "Filename is a directory: %s" filename))
+            (t
+             (concat (file-name-sans-extension filename) "." extn))))))
+
 ;;; Mode-Line
 
 (defvar-local mode-line-auto-compile
