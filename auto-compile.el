@@ -131,12 +131,6 @@
 
 (eval-when-compile (require 'subr-x))
 
-(declare-function autoload-rubric "autoload")
-(declare-function autoload-find-destination "autoload")
-(declare-function autoload-file-load-name "autoload")
-(declare-function autoload-generate-file-autoloads "autoload")
-
-(defvar autoload-modified-buffers)
 (defvar warning-minimum-level)
 
 (defvar auto-compile-use-mode-line)
