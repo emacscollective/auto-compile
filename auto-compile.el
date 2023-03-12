@@ -387,7 +387,7 @@ when switching git branches."
 ;;; Toggle and Perform Compilation
 
 ;;;###autoload
-(defun toggle-auto-compile (file action)
+(defun toggle-auto-compile (file action &optional interactive)
   "Toggle automatic compilation of an Emacs Lisp source file or files.
 
 Read a file or directory name from the minibuffer defaulting to
@@ -432,7 +432,9 @@ multiple files is toggled as follows:
   up-to-date.  Do so even for non-library source files.
 
 * Compile libraries in subdirectories, except for files in hidden
-  directories and directories containing a file named \".nosearch\"."
+  directories and directories containing a file named \".nosearch\".
+
+\(fn FILE ACTION)"
   (interactive
    (let* ((file (and (eq major-mode 'emacs-lisp-mode)
                      (buffer-file-name)))
@@ -457,12 +459,12 @@ multiple files is toggled as follows:
                            (and file (file-name-directory file))
                            nil t
                            (and file (file-name-nondirectory file)))
-           action)))
+           action t)))
   (if (file-regular-p file)
       (pcase action
         ('start (auto-compile-byte-compile file t))
         ('quit  (auto-compile-delete-dest (byte-compile-dest-file file))))
-    (when (called-interactively-p 'any)
+    (when interactive
       (let ((buffer (get-buffer byte-compile-log-buffer)))
         (when (buffer-live-p buffer)
           (kill-buffer buffer))))
