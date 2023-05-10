@@ -101,7 +101,7 @@
 ;; only ever _update_ byte code files, toggling automatic compilation
 ;; is done simply by either creating the byte code file or by removing
 ;; it.  `toggle-auto-compile' can also toggle automatic compilation of
-;; multiple files at once; see its doc-string for more information.
+;; multiple files at once; see its docstring for more information.
 
 ;; Customization
 ;; -------------
