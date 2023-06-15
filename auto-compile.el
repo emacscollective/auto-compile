@@ -270,12 +270,13 @@ non-nil."
 
 (defun auto-compile--tree-member (elt tree)
   ;; Also known as keycast--tree-member.
-  (or (member elt tree)
+  (when (listp tree)
+    (or (member elt tree)
       (catch 'found
         (dolist (sub tree)
           (when-let ((found (and (listp sub)
-                                 (auto-compile--tree-member elt sub))))
-            (throw 'found found))))))
+                              (auto-compile--tree-member elt sub))))
+            (throw 'found found)))))))
 
 (defun auto-compile-modify-mode-line (after)
   (let ((format (default-value 'mode-line-format)))
