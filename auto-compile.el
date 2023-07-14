@@ -501,7 +501,7 @@ multiple files is toggled as follows:
 
 (defun auto-compile-source-file-p (file)
   "Return non-nil if FILE ends with the suffix \".el\".
-Optionaly that suffix may be followed by one listed in
+Optionally that suffix may be followed by one listed in
 `load-file-rep-suffixes'."
   (string-match-p (format "\\.el%s\\'" (regexp-opt load-file-rep-suffixes))
                   file))
