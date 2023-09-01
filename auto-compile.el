@@ -75,7 +75,7 @@
 ;;     (auto-compile-on-save-mode)
 
 ;; You might want to set the file-local value of `no-byte-compile' to
-;; t, e.g. by adding "-*- no-byte-compile: t -*-" (without the quotes)
+;; t, e.g., by adding "-*- no-byte-compile: t -*-" (without the quotes)
 ;; at the end of the very first line.  That way all user files benefit
 ;; from the protection offered by `load-prefer-newer' and the modes
 ;; that are defined here, otherwise `init.el' is the only exception.
@@ -121,7 +121,7 @@
 ;; on the counter in the mode-line.
 
 ;; Using `auto-compile-inhibit-compile-hook' it is possible to inhibit
-;; automatic compilation under certain circumstances; e.g. when HEAD
+;; automatic compilation under certain circumstances; e.g., when HEAD
 ;; is detached inside a Git repository (useful during rebase sessions).
 
 ;;; Code:
@@ -373,7 +373,7 @@ When this is non-nil and saving a source buffer causes the file
 to be created (as opposed to being overwritten) while its byte
 code file already exists (because the source already existed and
 was compiled in the past), then remove the latter (instead of
-updating it by recompiling the source).  This can e.g. happen
+updating it by recompiling the source).  This can e.g., happen
 when switching git branches."
   :group 'auto-compile
   :type 'boolean)
