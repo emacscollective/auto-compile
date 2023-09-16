@@ -52,7 +52,7 @@ otherwise:
 #+end_src
 
 You might want to set the file-local value of ~no-byte-compile~ to
-~t~, e.g. by adding ~-*- no-byte-compile: t -*-~ at the end of the
+~t~, e.g., by adding ~-*- no-byte-compile: t -*-~ at the end of the
 very first line.  That way _all_ user files benefit from the
 protection offered by ~load-prefer-newer~ and the modes that are
 defined here, otherwise ~~/.emacs.d/init.el~ is the unfortunate
@@ -101,7 +101,7 @@ To display the buffer use ~M-x auto-compile-display-log~ or click
 on the counter in the mode-line.
 
 Using ~auto-compile-inhibit-compile-hook~ it is possible to inhibit
-automatic compilation under certain circumstances; e.g. when HEAD
+automatic compilation under certain circumstances; e.g., when HEAD
 is detached inside a Git repository (useful during rebase sessions).
 
 #+html: <br><br>
