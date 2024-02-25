@@ -268,20 +268,25 @@ non-nil."
   :group 'auto-compile
   :type 'boolean)
 
-(defun auto-compile--tree-member (elt tree)
+(defun auto-compile--tree-member (elt tree &optional delete)
   ;; Also known as keycast--tree-member.
   (and (listp tree)
-       (or (member elt tree)
-           (catch 'found
-             (dolist (sub tree)
-               (when-let ((found (auto-compile--tree-member elt sub)))
-                 (throw 'found found)))))))
+       (if-let* ((pos (cl-position elt tree))
+                 (mem (nthcdr pos tree)))
+           (cond ((not delete) mem)
+                 ((cdr mem)
+                  (setcar mem (cadr mem))
+                  (setcdr mem (cddr mem))
+                  nil)
+                 ((nbutlast tree) nil))
+         (catch 'found
+           (dolist (sub tree)
+             (when-let ((found (auto-compile--tree-member elt sub delete)))
+               (throw 'found found)))))))
 
 (defun auto-compile-modify-mode-line (after)
   (let ((format (default-value 'mode-line-format)))
-    (when-let ((mem (auto-compile--tree-member 'mode-line-auto-compile format)))
-      (setcar mem (cadr mem))
-      (setcdr mem (cddr mem)))
+    (auto-compile--tree-member 'mode-line-auto-compile format 'delete)
     (when after
       (if-let ((mem (auto-compile--tree-member after format)))
           (push 'mode-line-auto-compile (cdr mem))
