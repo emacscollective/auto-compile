@@ -821,8 +821,15 @@ Also see the related `auto-compile-on-save-mode'."
 If `auto-compile-on-load-mode' isn't enabled, then do nothing.
 It needs recompilation if it is newer than the byte-code file.
 Without this advice the outdated source file would get loaded."
-  (when auto-compile-on-load-mode
-    (auto-compile-on-load file nosuffix)))
+  (cond ((not auto-compile-on-load-mode))
+        ((eq user-init-file t)
+         ;; We are loading the init file during startup.  If we have to
+         ;; compile it, then that would load additional files.  Prevent
+         ;; the first recursive `load' invocation from believing it is
+         ;; loading the init file, by suspending the special value.
+         (let ((user-init-file nil))
+           (auto-compile-on-load file nosuffix)))
+        ((auto-compile-on-load file nosuffix))))
 
 (define-advice require
     (:before (feature &optional filename _noerror) auto-compile)
