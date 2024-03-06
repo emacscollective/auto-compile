@@ -7,7 +7,7 @@
 ;; Keywords: compile convenience lisp
 
 ;; Package-Version: 1.8.2
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "26.1"))
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
