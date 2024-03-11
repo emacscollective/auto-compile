@@ -160,6 +160,7 @@ variant `auto-compile-on-save-mode'.  Also see the related
   :lighter auto-compile-mode-lighter
   :group 'auto-compile
   (unless (derived-mode-p 'emacs-lisp-mode)
+    (setq auto-compile-mode nil)
     (user-error "This mode only makes sense with emacs-lisp-mode"))
   (if auto-compile-mode
       (add-hook  'after-save-hook #'auto-compile-byte-compile nil t)
