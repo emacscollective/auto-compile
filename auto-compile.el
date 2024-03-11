@@ -161,7 +161,7 @@ variant `auto-compile-on-save-mode'.  Also see the related
   :group 'auto-compile
   (unless (derived-mode-p 'emacs-lisp-mode)
     (setq auto-compile-mode nil)
-    (user-error "This mode only makes sense with emacs-lisp-mode"))
+    (user-error "`auto-comile-mode' only makes sense in `emacs-lisp-mode'"))
   (if auto-compile-mode
       (add-hook  'after-save-hook #'auto-compile-byte-compile nil t)
     (remove-hook 'after-save-hook #'auto-compile-byte-compile t)))
