@@ -1,0 +1,15 @@
+# -*- mode: org -*-
+* v2.0.0    2024-03-21
+
+At least Emacs 26.1 is required now.
+
+- Fixed an issue that occured when the init file is being
+  compiled during Emacs startup.  ~startup--load-user-init-file~ binds
+  ~user-init-file~ to a special value to instruct ~byte-compile-file~ to
+  behave differently.  We didn't account for that, resulting in some
+  other library that our advise loads (most likely ~compile.el~) to be
+  treated as the init file.  #33
+
+- When trying to remove an element from the mode-line, which happens
+  to come last in a list, we ended up replacing it with nil, instead
+  of completely removing it.  3899157
