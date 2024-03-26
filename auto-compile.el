@@ -154,14 +154,14 @@ not exist do nothing.  Therefore to disable automatic compilation
 remove the byte code file.  See command `toggle-auto-compile' for
 a convenient way to do so.
 
-This mode should be enabled globally, using it's globalized
+This mode should be enabled globally, using its globalized
 variant `auto-compile-on-save-mode'.  Also see the related
 `auto-compile-on-load-mode'."
   :lighter auto-compile-mode-lighter
   :group 'auto-compile
   (unless (derived-mode-p 'emacs-lisp-mode)
     (setq auto-compile-mode nil)
-    (user-error "`auto-comile-mode' only makes sense in `emacs-lisp-mode'"))
+    (user-error "`auto-compile-mode' only makes sense in `emacs-lisp-mode'"))
   (if auto-compile-mode
       (add-hook  'after-save-hook #'auto-compile-byte-compile nil t)
     (remove-hook 'after-save-hook #'auto-compile-byte-compile t)))
@@ -333,18 +333,18 @@ to include `mode-line-auto-compile'."
 (defcustom auto-compile-toggle-recompiles t
   "Whether to recompile all source files when turning on compilation.
 
-When turning on auto compilation for multiple files at once
-recompile source files even if their byte code file already
-exist and are up-to-date.  It's advisable to keep this enabled
-to ensure changes to macros are picked up."
+When turning on auto compilation for multiple files at once,
+recompile source files even if the corresponding byte code files
+already exist and are up-to-date.  It's advisable to keep this
+enabled to ensure changes to macros are picked up."
   :group 'auto-compile
   :type 'boolean)
 
 (defcustom auto-compile-predicate-function 'auto-compile-source-file-p
   "Function used to determine if a file should be compiled.
 
-The default, `auto-compile-source-file-p', returns t for all
-files whose filename ends with the \".el\" suffix, optionally
+The default, `auto-compile-source-file-p', returns non-nil for
+all files whose filename ends with the \".el\" suffix, optionally
 followed by one of the suffixes in `load-file-rep-suffixes'.
 
 Another useful value is `elx-library-p' from the `elx' package,
@@ -804,7 +804,7 @@ This is especially useful during rebase sessions."
   "Before loading a library recompile it if it needs recompilation.
 
 A library needs to be recompiled if the source file is newer than
-it's byte-compile destination.  Without this advice the outdated
+its byte-compile destination.  Without this advice the outdated
 byte code file would be loaded instead.
 
 Also see the related `auto-compile-on-save-mode'."
