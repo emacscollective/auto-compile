@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2008-2024 Jonas Bernoulli
 
-;; Author: Jonas Bernoulli <jonas@bernoul.li>
+;; Author: Jonas Bernoulli <emacs.auto-compile@jonas.bernoulli.dev>
 ;; Homepage: https://github.com/emacscollective/auto-compile
 ;; Keywords: compile convenience lisp
 
