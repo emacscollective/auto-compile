@@ -1,4 +1,9 @@
 # -*- mode: org -*-
+* v2.0.1    2024-06-08
+
+- Fixed an issue that prevented \"Compile-Log\" from being fontified
+  in Emacs 30.  4a951af
+
 * v2.0.0    2024-03-21
 
 At least Emacs 26.1 is required now.
