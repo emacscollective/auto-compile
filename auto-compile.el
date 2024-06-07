@@ -632,7 +632,7 @@ pretend the byte code file exists.")
   (let ((after-change-major-mode-hook nil)
         (prog-mode-hook nil)
         (emacs-lisp-mode-hook nil))
-  (byte-compile-file file)))
+    (byte-compile-file file)))
 
 (defun auto-compile-delete-dest (dest &optional failurep)
   (unless failurep
