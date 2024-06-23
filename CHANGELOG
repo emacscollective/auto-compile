@@ -1,4 +1,10 @@
 # -*- mode: org -*-
+* v2.0.2    2024-06-23
+
+- Fixed the fix from the previous release, which is necessary for
+  font-lock to be enable for Emacs 30 but keeps it from being
+  enabled for older releases.
+
 * v2.0.1    2024-06-08
 
 - Fixed an issue that prevented \"Compile-Log\" from being fontified
