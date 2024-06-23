@@ -630,7 +630,7 @@ pretend the byte code file exists.")
 
 (defun auto-compile--byte-compile-file (file)
   (let ((after-change-major-mode-hook
-         (list 'global-font-lock-mode-enable-in-buffer))
+         (list 'global-font-lock-mode-enable-in-buffers))
         (prog-mode-hook nil)
         (emacs-lisp-mode-hook nil))
     (byte-compile-file file)))
