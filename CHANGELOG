@@ -18,7 +18,7 @@
 
 At least Emacs 26.1 is required now.
 
-- Fixed an issue that occured when the init file is being
+- Fixed an issue that occurred when the init file is being
   compiled during Emacs startup.  ~startup--load-user-init-file~ binds
   ~user-init-file~ to a special value to instruct ~byte-compile-file~ to
   behave differently.  We didn't account for that, resulting in some
