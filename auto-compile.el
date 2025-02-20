@@ -299,7 +299,7 @@ non-nil."
 (defun auto-compile-use-mode-line-set (_ignored value)
   "Set `auto-compile-use-mode-line' and modify `mode-line-format'.
 VALUE is the element in `mode-line-format' after which our
-element is inserted. _IGNORED is of no relevance."
+element is inserted.  _IGNORED is of no relevance."
   (setq-default auto-compile-use-mode-line value)
   (auto-compile-modify-mode-line value))
 
@@ -545,7 +545,7 @@ Command `auto-compile-byte-compile' sets this buffer local
 variable to t after failing to compile a source file being
 visited in a buffer (or when variable `auto-compile-visit-failed'
 is non-nil for all files being compiled) causing it to try again
-when being called again. Command `toggle-auto-compile' will also
+when being called again.  Command `toggle-auto-compile' will also
 pretend the byte code file exists.")
 
 (defvar auto-compile-file-buffer nil)
