@@ -168,9 +168,9 @@ variant `auto-compile-on-save-mode'.  Also see the related
 
 ;;;###autoload
 (define-globalized-minor-mode auto-compile-on-save-mode
-  auto-compile-mode turn-on-auto-compile-mode)
+  auto-compile-mode auto-compile-mode--turn-on)
 
-(defun turn-on-auto-compile-mode ()
+(defun auto-compile-mode--turn-on ()
   (when (eq major-mode 'emacs-lisp-mode)
     (auto-compile-mode 1)))
 
