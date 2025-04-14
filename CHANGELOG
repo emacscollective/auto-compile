@@ -1,4 +1,8 @@
 # -*- mode: org -*-
+* v2.0.6    2025-04-14
+
+- Fix locating the place to insert our mode-line element.  c5b1146
+
 * v2.0.5    2025-03-01
 
 - Thoughts and whitespace.
