@@ -16,23 +16,23 @@ source file is newer than the respective byte code file, which is a
 problem because by default Emacs loads the byte code file even when
 the respective source file has been modified more recently.
 
-Starting with Emacs version 24.4, setting ~load-prefer-newer~ to ~t~
-prevents outdated byte code files from being loaded.  However this
-does not cause re-compilation of the source file, to actually do
-that ~auto-compile-on-load-mode~ is still required.
+Setting ~load-prefer-newer~ to ~t~ prevents outdated byte code files
+from being loaded.  However this does not cause re-compilation of the
+source file, to actually do that ~auto-compile-on-load-mode~ is still
+required.
 
 ** Setup
 
-To reduce the risk of loading outdated byte code files, you should
+To reduce the risk of loading outdated byte-code files, you should
 set ~load-prefer-newer~ and enable ~auto-compile-on-load-mode~ as
-early as possible.  Then also enable ~auto-compile-on-save-mode~.
-You should also consider not byte-compiling your personal init
-file, or setting ~load-prefer-newer~ in a system-wide init file.
+early as possible, in ~early-init.el~.  If you additionally enable
+~auto-compile-on-save-mode~, it is best to do that in the early
+init file as well.
 
-If you use ~package.el~ then use something like this:
+ So if you use ~package.el~, I recommend something like this:
 
 #+begin_src emacs-lisp
-  ;;; init.el --- user init file
+  ;;; early-init.el -*- no-byte-compile: t -*-
   (setq load-prefer-newer t)
   (package-initialize)
   (require 'auto-compile)
@@ -40,36 +40,29 @@ If you use ~package.el~ then use something like this:
   (auto-compile-on-save-mode)
 #+end_src
 
-otherwise:
+Or when installing manually or using an esoteric package manager:
 
 #+begin_src emacs-lisp
-  ;;; init.el --- user init file
+  ;;; early-init.el -*- no-byte-compile: t -*-
   (setq load-prefer-newer t)
+  (setq package-enable-at-startup nil)
   (add-to-list 'load-path "/path/to/auto-compile")
   (require 'auto-compile)
   (auto-compile-on-load-mode)
   (auto-compile-on-save-mode)
 #+end_src
 
-You might want to set the file-local value of ~no-byte-compile~ to
-~t~, e.g., by adding ~-*- no-byte-compile: t -*-~ at the end of the
-very first line.  That way _all_ user files benefit from the
-protection offered by ~load-prefer-newer~ and the modes that are
-defined here, otherwise ~~/.emacs.d/init.el~ is the unfortunate
-exception.
+By putting these settings in the early init file, you ensure that
+all other personal init files and user installed packages benefit
+from the extra protection.  Except for the early init file itself
+of course, but thanks to the ~-*- no-byte-compile: t -*-~ that
+does not matter.
 
-If you are using Emacs 27 or later, then these settings should be
-placed in ~early-init.el~, which should never be compiled:
-
-#+begin_src emacs-lisp
-  ;;; early-init.el --- early bird  -*- no-byte-compile: t -*-
-  (setq load-prefer-newer t)
-  (add-to-list 'load-path "/path/to/auto-compile")
-  (require 'auto-compile)
-  (auto-compile-on-load-mode)
-  (auto-compile-on-save-mode)
-  ;;; early-init.el ends here
-#+end_src
+As an additional safety-net you might want to consider enabling
+~load-prefer-newer~ in a system-wide init file, so that it also
+takes effect when using ~emacs -q~.  (Or even to patch Emacs, to
+enable ~load-prefer-newer~ by default, so that it is enabled even
+when using ~emacs -Q~.)
 
 ** Usage
 
