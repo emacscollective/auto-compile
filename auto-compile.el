@@ -313,10 +313,10 @@ to include `mode-line-auto-compile'."
   :set (lambda (symbol value)
          (set-default-toplevel-value symbol value)
          (auto-compile-modify-mode-line value))
-  :type '(choice (const :tag "don't insert" nil)
-                 (const :tag "after mode-line-modified" mode-line-modified)
-                 (const :tag "after mode-line-remote" mode-line-remote)
-                 (sexp  :tag "after construct")))
+  :type '(choice (const :tag "Don't insert" nil)
+                 (const :tag "After mode-line-modified" mode-line-modified)
+                 (const :tag "After mode-line-remote" mode-line-remote)
+                 (sexp  :tag "After construct")))
 
 (defcustom auto-compile-toggle-recompiles t
   "Whether to recompile all source files when turning on compilation.
