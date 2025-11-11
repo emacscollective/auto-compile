@@ -296,7 +296,7 @@ non-nil."
   "Set `auto-compile-use-mode-line' and modify `mode-line-format'.
 VALUE is the element in `mode-line-format' after which our
 element is inserted.  _IGNORED is of no relevance."
-  (setq-default auto-compile-use-mode-line value)
+  (set-default-toplevel-value 'auto-compile-use-mode-line value)
   (auto-compile-modify-mode-line value))
 
 (defcustom auto-compile-use-mode-line
