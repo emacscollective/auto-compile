@@ -1,5 +1,5 @@
 # -*- mode: org -*-
-* v2.1.2    UNRELEASED
+* v2.1.2    2026-01-01
 
 - Deprecated ~auto-compile-use-mode-line-set~.  Instead customize
   option ~auto-compile-use-mode-line~ using the Custom interface or
