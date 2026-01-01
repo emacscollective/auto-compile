@@ -424,30 +424,30 @@ multiple files is toggled as follows:
 
 \(fn FILE ACTION)"
   (interactive
-   (let* ((file (and (eq major-mode 'emacs-lisp-mode)
-                     (buffer-file-name)))
-          (action
-           (cond
-             (current-prefix-arg
-              (if (> (prefix-numeric-value current-prefix-arg) 0)
-                  'start
-                'quit))
-             (file
-              (if (file-exists-p (byte-compile-dest-file file))
-                  'quit
-                'start))
-             (t
-              (pcase (read-char-choice
-                      "Toggle automatic compilation (s=tart, q=uit, C-g)? "
-                      '(?s ?q))
-                (?s 'start)
-                (?q 'quit))))))
-     (list (read-file-name (concat (capitalize (symbol-name action))
-                                   " auto-compiling: ")
-                           (and file (file-name-directory file))
-                           nil t
-                           (and file (file-name-nondirectory file)))
-           action t)))
+    (let* ((file (and (eq major-mode 'emacs-lisp-mode)
+                      (buffer-file-name)))
+           (action
+            (cond
+              (current-prefix-arg
+               (if (> (prefix-numeric-value current-prefix-arg) 0)
+                   'start
+                 'quit))
+              (file
+               (if (file-exists-p (byte-compile-dest-file file))
+                   'quit
+                 'start))
+              (t
+               (pcase (read-char-choice
+                       "Toggle automatic compilation (s=tart, q=uit, C-g)? "
+                       '(?s ?q))
+                 (?s 'start)
+                 (?q 'quit))))))
+      (list (read-file-name (concat (capitalize (symbol-name action))
+                                    " auto-compiling: ")
+                            (and file (file-name-directory file))
+                            nil t
+                            (and file (file-name-nondirectory file)))
+            action t)))
   (if (file-regular-p file)
       (pcase action
         ('start (auto-compile-byte-compile file t))
@@ -875,6 +875,6 @@ Without this advice the outdated source file would get loaded."
 (provide 'auto-compile)
 ;; Local Variables:
 ;; indent-tabs-mode: nil
-;; lisp-indent-local-overrides: ((cond . 0))
+;; lisp-indent-local-overrides: ((cond . 0) (interactive . 0))
 ;; End:
 ;;; auto-compile.el ends here
