@@ -1,6 +1,6 @@
 ;;; auto-compile.el --- Automatically compile Emacs Lisp libraries  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2025 Jonas Bernoulli
+;; Copyright (C) 2008-2026 Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <emacs.auto-compile@jonas.bernoulli.dev>
 ;; Homepage: https://github.com/emacscollective/auto-compile
