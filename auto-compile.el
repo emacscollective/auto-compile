@@ -691,7 +691,7 @@ This is especially useful during rebase sessions."
 ;;; Mode-Line
 
 (defvar-local mode-line-auto-compile
-    '(auto-compile-mode (:eval (mode-line-auto-compile-control))))
+  '(auto-compile-mode (:eval (mode-line-auto-compile-control))))
 (put 'mode-line-auto-compile 'risky-local-variable t)
 
 (defun mode-line-auto-compile-control ()
