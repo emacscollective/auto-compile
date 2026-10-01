@@ -1,4 +1,8 @@
 # -*- mode: org -*-
+* v2.1.5    2026-10-01
+
+- Thoughts and whitespace.
+
 * v2.1.4    2026-06-01
 
 - At least Emacs 28.1 is required now.
